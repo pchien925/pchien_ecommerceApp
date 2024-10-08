@@ -1,0 +1,13 @@
+services:
+  mysql:
+    image: mysql:8.0.39-debian
+    container_name: mysql-8.0.39
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 25092004chien
+      MYSQL_DATABASE: customer  # This creates the 'customer' database automatically
+    ports:
+      - "3307:3306"
+networks:
+  microservices-net:
+    driver: bridge
