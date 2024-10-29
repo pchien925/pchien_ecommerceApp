@@ -1,30 +1,5 @@
 spring:
+  config:
+    import: optional:configserver:http://localhost:8888
   application:
     name: identity-service
-  datasource:
-    url: jdbc:mysql://localhost:3306/identity_service
-    username: root
-    password: 25092004chien
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: phamchien9254@gmail.com
-    password: oqvc caqw eboj zbwg
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
-      mail.smtp.starttls.required: true
-  jpa:
-    hibernate.ddl-auto: update
-    show-sql: true
-springdoc:
-  api-docs:
-   enabled: true
-  swagger-ui:
-   enabled: true
-server:
-  port: 8081
-jwt:
-  expiryHour: 8
-  expiryDay: 24
-  secretKey: KqtqRGZJ3H8a0q6cqMg2Wn2OWA2YJV0eMKVOFt9SpI+szXafU3sYkTBzyCfaKPWi

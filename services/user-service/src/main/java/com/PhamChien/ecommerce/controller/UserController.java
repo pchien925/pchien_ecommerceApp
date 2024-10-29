@@ -16,10 +16,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class UserController {
-    UserService userService;
+    private final UserService userService;
 
     @PostMapping
     ApiResponse<UserResponse> create(@RequestBody UserRequest userRequest) {

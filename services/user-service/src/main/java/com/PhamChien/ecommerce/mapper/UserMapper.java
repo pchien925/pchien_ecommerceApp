@@ -9,13 +9,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 
-@Mapper(componentModel = "Spring")
+@Mapper(componentModel = "spring")
 public interface UserMapper {
     User toUser(UserRequest userRequest);
     UserResponse toUserResponse(User user);
-
-//    @Mapping(target = "userProfile", ignore = true)
-//    @Mapping(target = "addresses", ignore = true)
-//    @Mapping(target = "roles", ignore = true)
     void updateUser(UserUpdateRequest userUpdateRequest, @MappingTarget User user);
 }

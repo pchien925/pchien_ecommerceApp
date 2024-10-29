@@ -23,11 +23,11 @@ public class AuthController {
     private final AuthService authService;
     private final EmailService emailService;
 
-    @GetMapping("/{userCredentialId}")
-    public ApiResponse<UserCredentialResponse> getUserCredential(@PathVariable("userCredentialId") String userCredentialId){
+    @GetMapping("/myInfo")
+    public ApiResponse<UserCredentialResponse> getUserCredential(HttpServletRequest request){
         return ApiResponse.<UserCredentialResponse>builder()
                 .status(HttpStatus.OK.value())
-                .data(authService.getUserCredential(userCredentialId))
+                .data(authService.getUserCredential(request))
                 .build();
     }
 
@@ -85,5 +85,29 @@ public class AuthController {
              .status(HttpStatus.OK.value())
              .data(authService.logout(request))
              .build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ApiResponse<String> forgotPassword(@RequestBody String email){
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .data(authService.forgotPassword(email))
+                .build();
+    }
+
+    @PostMapping("/reset-password")
+    public ApiResponse<String> resetPassword(@RequestBody String resetKey){
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .data(authService.resetPassword(resetKey))
+                .build();
+    }
+
+    @PostMapping("/change-password")
+    public ApiResponse<String> changePassword(@RequestBody ResetPasswordRequest resetPasswordRequest){
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .data(authService.changePassword(resetPasswordRequest))
+                .build();
     }
 }

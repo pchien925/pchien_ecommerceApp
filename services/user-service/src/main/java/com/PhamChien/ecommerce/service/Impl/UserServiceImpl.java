@@ -9,11 +9,7 @@ import com.PhamChien.ecommerce.exception.ErrorCode;
 import com.PhamChien.ecommerce.mapper.UserMapper;
 import com.PhamChien.ecommerce.repository.UserRepository;
 import com.PhamChien.ecommerce.service.UserService;
-
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +17,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@Slf4j
 public class UserServiceImpl implements UserService {
-    UserRepository userRepository;
-    UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponse createUser(UserRequest userRequest) {

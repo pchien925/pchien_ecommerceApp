@@ -46,9 +46,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     Set<Address> addresses;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    Set<Role> roles;
-
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

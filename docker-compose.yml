@@ -4,10 +4,11 @@ services:
     container_name: mysql-8.0.39
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 25092004chien
-      MYSQL_DATABASE: customer  # This creates the 'customer' database automatically
+      MYSQL_ROOT_PASSWORD: 25092004chien  # Mật khẩu cho user root
     ports:
-      - "3307:3306"
+      - "3307:3306"  # Mở cổng MySQL
+    networks:
+      - microservices-net  # Kết nối đến network
 networks:
-  microservices-net:
-    driver: bridge
+  microservices-net:  # Định nghĩa mạng microservices-net
+    driver: bridge  # Sử dụng bridge network cho các service

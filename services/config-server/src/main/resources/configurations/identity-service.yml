@@ -1,0 +1,33 @@
+server:
+  port: 8083
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/identity_service
+    username: root
+    password: 25092004chien
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: phamchien9254@gmail.com
+    password: oqvc caqw eboj zbwg
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+  jpa:
+    hibernate.ddl-auto: update
+    show-sql: true
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+jwt:
+  expiryHour: 8
+  expiryDay: 24
+  secretKey: WXeSBt2y6YKQQ5RSEF3Jo9tBcxN0yIdVcBwhX8gwrOTe2pnBCjJQrsGnCnpQ4rE8
+  refreshKey: nNdxe/CZeInFe8Ri1dZGalNgXHtnI3l0wPWAazOFknnR93bgQiBdzHXY/mKBuXWr
+  resetKey: zbLq6xNKPmcnJkpQlwbT5EVDxuvgxBqJjjZRlxn13DilbK8DlSygMfpsRlrY6t4j
+
+
+

@@ -21,7 +21,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Entity
 @Table(name = "user_credential")
-public class UserCredential implements UserDetails {
+public class UserCredential extends AbstractEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
@@ -44,14 +44,6 @@ public class UserCredential implements UserDetails {
 
     @Column(name = "verification_code_expiry")
     private LocalDateTime verificationCodeExpiry;
-
-    @Column(name = "created_at")
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "userCredential")
     private Set<UserCredentialHasRole> roles = new HashSet<>();

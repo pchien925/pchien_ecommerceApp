@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,7 +33,7 @@ import javax.crypto.spec.SecretKeySpec;
 @RequiredArgsConstructor
 public class AppConfig {
 
-    private String[] PUBLIC_ENDPOINTS = {"/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/activate-account", "/api/v1/auth/verifyToken", "/api/v1/auth/refresh"};
+    private String[] PUBLIC_ENDPOINTS = {"/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/activate-account", "/api/v1/auth/verifyToken", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password", "/api/v1/auth/change-password"};
 
     @Value("${jwt.secretKey}")
     private String secretKey;
@@ -42,7 +43,8 @@ public class AppConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, PreFilter preFilter) throws Exception {
-        http.authorizeHttpRequests(requests -> {
+        http.cors(Customizer.withDefaults())
+        .authorizeHttpRequests(requests -> {
             requests
                     .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                     .anyRequest().authenticated();
@@ -66,8 +68,9 @@ public class AppConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("localhost:8081")
+                        .allowedOrigins("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
+                        .allowedHeaders("*")
                         .maxAge(3600);
             }
         };

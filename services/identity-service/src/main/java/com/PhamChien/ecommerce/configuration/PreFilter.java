@@ -3,6 +3,7 @@ package com.PhamChien.ecommerce.configuration;
 import com.PhamChien.ecommerce.domain.UserCredential;
 import com.PhamChien.ecommerce.service.Impl.CustomUserDetailsService;
 import com.PhamChien.ecommerce.service.JwtService;
+import com.PhamChien.ecommerce.util.TokenType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Component
 @Slf4j
@@ -42,12 +45,12 @@ public class PreFilter extends OncePerRequestFilter {
         final String token = authorization.substring("Bearer ".length());
         log.info("Token: {}", token);
 
-        final String username = jwtService.extractUsername(token);
+        final String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
         log.info("Username: {}", username);
 
         if(StringUtils.isNotEmpty(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserCredential userCredential = userDetailsService.loadUserByUsername(username);
-            if(jwtService.isValidToken(token, userCredential)) {
+            if(jwtService.isValidToken(token, TokenType.ACCESS_TOKEN, userCredential)) {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userCredential, null, userCredential.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

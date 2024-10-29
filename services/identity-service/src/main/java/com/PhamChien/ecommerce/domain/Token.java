@@ -10,7 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "token")
-public class Token{
+public class Token extends AbstractEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -24,4 +24,7 @@ public class Token{
 
     @Column(name = "refresh_token", columnDefinition = "varchar(500)")
     private String refreshToken;
+
+    @Column(name = "reset_token", columnDefinition = "varchar(500)")
+    private String resetToken;
 }
