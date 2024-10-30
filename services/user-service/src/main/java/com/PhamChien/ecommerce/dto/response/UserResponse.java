@@ -1,33 +1,40 @@
 package com.PhamChien.ecommerce.dto.response;
 
-import com.PhamChien.ecommerce.domain.Address;
-import com.PhamChien.ecommerce.domain.UserProfile;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import com.PhamChien.ecommerce.domain.Profile;
+import com.PhamChien.ecommerce.util.Gender;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.Set;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserResponse {
-    String id;
-    String username;
-    String email;
-    LocalDateTime createdAt;
+    private Long id;
 
-    LocalDateTime updatedAt;
+    private String firstname;
 
+    private String lastname;
 
-    @JsonProperty("userProfile")
-    @JsonInclude(value = JsonInclude.Include.NON_NULL)
-    UserProfile userProfile;
+    private Gender gender;
 
-    @JsonInclude(value = JsonInclude.Include.NON_NULL)
-    Set<Address> addresses;
+    private String phone;
+
+    private LocalDate dob;
+
+    private String credentialId;
+
+    private Date createdAt;
+
+    private Date updatedAt;
+
+    private Set<Profile> profiles;
 }

@@ -1,59 +1,40 @@
-package com.PhamChien.ecommerce.domain;
+    package com.PhamChien.ecommerce.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+    import com.PhamChien.ecommerce.util.Gender;
+    import com.fasterxml.jackson.annotation.JsonIgnore;
+    import jakarta.persistence.*;
+    import lombok.*;
+    import java.time.LocalDate;
+    import java.util.Set;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+    @Entity
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Table(name = "user")
+    public class User extends AbstractEntity<Long>{
+        @Column(name = "firstname")
+        private String firstname;
 
-@Entity
-@Table(name = "users")
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class User {
+        @Column(name = "lastname")
+        private String lastname;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    String id;
+        @Column(name = "gender")
+        @Enumerated(EnumType.STRING)
+        private Gender gender;
 
-    @Column(unique = true, nullable = false)
-    String username;
+        @Column(name = "phone")
+        private String phone;
 
-    @Column(nullable = false)
-    String password;
+        @Column(name = "dob")
+        private LocalDate dob;
 
-    @Column(unique = true, nullable = false)
-    String email;
+        @Column(name = "credentialId")
+        private String credentialId;
 
-    @Column(name = "created_at", updatable = false)
-    LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    LocalDateTime updatedAt;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    UserProfile userProfile;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    Set<Address> addresses;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        @JsonIgnore
+        @OneToMany(mappedBy = "user")
+        private Set<Profile> profiles;
     }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-}
