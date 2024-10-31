@@ -1,12 +1,17 @@
 package com.PhamChien.ecommerce.service.Impl;
 
+import com.PhamChien.ecommerce.domain.User;
 import com.PhamChien.ecommerce.dto.request.UserCreationRequest;
+import com.PhamChien.ecommerce.dto.request.UserUpdateRequest;
 import com.PhamChien.ecommerce.dto.response.UserResponse;
 import com.PhamChien.ecommerce.mapper.UserMapper;
 import com.PhamChien.ecommerce.repository.UserRepository;
 import com.PhamChien.ecommerce.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +22,36 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse create(UserCreationRequest request){
-       return null;
+        return userMapper.toUserResponse(userRepository.save(userMapper.toUser(request)));
+    }
+
+    @Override
+    public UserResponse update(Long id, UserUpdateRequest request){
+        User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        userMapper.updateUser(user, request);
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    @Override
+    public String delete(Long id){
+        userRepository.deleteById(id);
+        return "deleted";
+    }
+
+    @Override
+    public UserResponse getUser(Long id){
+        User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("user not found"));
+        return userMapper.toUserResponse(user);
+    }
+
+    @Override
+    public List<UserResponse> getAllUser(){
+        return userRepository.findAll().stream().map(userMapper::toUserResponse).toList();
+    }
+
+    @Override
+    public UserResponse getUserByCredentialId(String id){
+        User user = userRepository.findByCredentialId(id).orElseThrow(() -> new UsernameNotFoundException("user not found"));
+        return userMapper.toUserResponse(user);
     }
 }
