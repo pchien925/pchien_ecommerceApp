@@ -31,10 +31,10 @@
         @Column(name = "dob")
         private LocalDate dob;
 
-        @Column(name = "credentialId")
+        @Column(name = "credential_id")
         private String credentialId;
 
         @JsonIgnore
-        @OneToMany(mappedBy = "user")
+        @OneToMany(mappedBy = "user",cascade = CascadeType.ALL, orphanRemoval = true)
         private Set<Profile> profiles;
     }

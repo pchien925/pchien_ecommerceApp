@@ -2,10 +2,11 @@ package com.PhamChien.ecommerce.dto.request;
 
 import com.PhamChien.ecommerce.util.Gender;
 import lombok.Getter;
+
 import java.time.LocalDate;
 
 @Getter
-public class UserCreationRequest {
+public class UserUpdateRequest {
     private String firstname;
 
     private String lastname;
@@ -16,5 +17,4 @@ public class UserCreationRequest {
 
     private LocalDate dob;
 
-    private String credentialId;
 }
