@@ -1,5 +1,6 @@
 package com.PhamChien.ecommerce.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,5 +29,6 @@ public class Permission extends AbstractEntity{
     private String discription;
 
     @OneToMany(mappedBy = "permission")
+    @JsonIgnore
     private Set<RoleHasPermission> permissions = new HashSet<>();
 }

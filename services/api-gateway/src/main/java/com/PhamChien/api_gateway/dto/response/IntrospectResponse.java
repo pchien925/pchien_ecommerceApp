@@ -1,10 +1,9 @@
-package com.PhamChien.ecommerce.dto.response;
+package com.PhamChien.api_gateway.dto.response;
 
-import com.PhamChien.ecommerce.domain.Role;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
