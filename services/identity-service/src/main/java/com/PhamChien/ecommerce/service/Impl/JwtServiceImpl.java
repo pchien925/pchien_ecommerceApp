@@ -1,7 +1,9 @@
 package com.PhamChien.ecommerce.service.Impl;
 
+import com.PhamChien.ecommerce.domain.Role;
 import com.PhamChien.ecommerce.domain.UserCredential;
 import com.PhamChien.ecommerce.exception.InvalidDataException;
+import com.PhamChien.ecommerce.repository.RoleRepository;
 import com.PhamChien.ecommerce.service.JwtService;
 import com.PhamChien.ecommerce.util.TokenType;
 import com.nimbusds.jose.*;
@@ -11,15 +13,20 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.List;
+import java.util.StringJoiner;
 
 @Service
 @Slf4j
 public class JwtServiceImpl implements JwtService {
 
+    private final RoleRepository roleRepository;
     @Value("${jwt.expiryHour}")
     private Long expiryHour;
 
@@ -35,16 +42,24 @@ public class JwtServiceImpl implements JwtService {
     @Value("${jwt.resetKey}")
     private String resetKey;
 
+    public JwtServiceImpl(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
+
 
     @Override
     public String generateAccessToken(UserCredential userCredential) {
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
 
+        List<Role> roles = roleRepository.findAllByUserCredentialId(userCredential.getId());
+
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(userCredential.getUsername())
                 .issuer("PhamChien")
+                .issueTime(new Date())
                 .expirationTime(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * expiryHour)))
                 .claim("userID", userCredential.getId())
+                .claim("roles", buildScope(userCredential))
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
 
@@ -68,6 +83,7 @@ public class JwtServiceImpl implements JwtService {
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(userCredential.getUsername())
                 .issuer("PhamChien")
+                .issueTime(new Date())
                 .expirationTime(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * expiryDay)))
                 .claim("userID", userCredential.getId())
                 .build();
@@ -116,6 +132,10 @@ public class JwtServiceImpl implements JwtService {
         return jwtClaimsSet(token, type).getSubject();
     }
 
+    @Override
+    public Date extractExpiresAt(String token, TokenType type){
+        return jwtClaimsSet(token, type).getExpirationTime();
+    }
 
 
     @Override
@@ -123,6 +143,7 @@ public class JwtServiceImpl implements JwtService {
         String username = jwtClaimsSet(token, type).getSubject();
         return (username.equals(userCredential.getUsername()) && !isTokenExpired(token, type));
     }
+
 
     public JWTClaimsSet jwtClaimsSet(String token, TokenType tokenType){
         String key = key(tokenType);
@@ -153,5 +174,19 @@ public class JwtServiceImpl implements JwtService {
             }
             default -> throw new InvalidDataException("Invalid token type");
         }
+    }
+
+    private String buildScope(UserCredential user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+
+        List<Role> roles = roleRepository.findAllByUserCredentialId(user.getId());
+
+
+        if (!CollectionUtils.isEmpty(user.getRoles()))
+            roles.forEach(role -> {
+                stringJoiner.add(role.getName().name());
+            });
+
+        return stringJoiner.toString();
     }
 }

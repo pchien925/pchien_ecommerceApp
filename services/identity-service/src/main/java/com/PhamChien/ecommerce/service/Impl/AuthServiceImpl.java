@@ -2,21 +2,18 @@ package com.PhamChien.ecommerce.service.Impl;
 
 import com.PhamChien.ecommerce.domain.Token;
 import com.PhamChien.ecommerce.domain.UserCredential;
-import com.PhamChien.ecommerce.dto.request.LoginRequest;
-import com.PhamChien.ecommerce.dto.request.RegisterRequest;
-import com.PhamChien.ecommerce.dto.request.ResetPasswordRequest;
-import com.PhamChien.ecommerce.dto.request.SendMailRequest;
+import com.PhamChien.ecommerce.dto.request.*;
 import com.PhamChien.ecommerce.dto.response.IntrospectResponse;
 import com.PhamChien.ecommerce.dto.response.TokenResponse;
 import com.PhamChien.ecommerce.dto.response.UserCredentialResponse;
 import com.PhamChien.ecommerce.exception.InvalidDataException;
 import com.PhamChien.ecommerce.exception.ResourceNotFoundException;
 import com.PhamChien.ecommerce.mapper.UserCredentialMapper;
+import com.PhamChien.ecommerce.repository.RoleRepository;
+import com.PhamChien.ecommerce.repository.UserCredentialHasRoleRepository;
 import com.PhamChien.ecommerce.repository.UserCredentialRepository;
-import com.PhamChien.ecommerce.service.AuthService;
-import com.PhamChien.ecommerce.service.EmailService;
-import com.PhamChien.ecommerce.service.JwtService;
-import com.PhamChien.ecommerce.service.TokenService;
+import com.PhamChien.ecommerce.service.*;
+import com.PhamChien.ecommerce.util.RoleName;
 import com.PhamChien.ecommerce.util.TokenType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +22,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -46,6 +43,9 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
+    private final UserCredentialHasRoleRepository userCredentialHasRoleRepository;
+    private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
     @Override
     public TokenResponse authenticate(LoginRequest request){
@@ -70,22 +70,31 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
     @Override
-    public UserCredentialResponse getUserCredential(HttpServletRequest request){
-        String token = request.getHeader("Token");
+    public UserCredentialResponse getUserCredential(){
 
-        String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
-
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Optional<UserCredential> userCredential = userCredentialRepository.findByUsername(username);
         if (userCredential.isEmpty()) {
             throw new ResourceNotFoundException("User Credential not found with username: " + username);
         }
-        return userCredentialMapper.toUserCredentialResponse(userCredential.get());
+        List<String> roleNameList = roleService.getRoleNameList(userCredential.get().getId()).stream().map(RoleName::name).collect(Collectors.toList());
+        UserCredentialResponse response = userCredentialMapper.toUserCredentialResponse(userCredential.get());
+
+        response.setRole(roleNameList);
+
+        return response;
     }
 
     @Override
     public List<UserCredentialResponse> findAll(){
-        return userCredentialRepository.findAll().stream().map(userCredentialMapper::toUserCredentialResponse).toList();
+        List<UserCredentialResponse> list = userCredentialRepository.findAll().stream().map(userCredentialMapper::toUserCredentialResponse).toList();
+
+        for (var l : list){
+            List<String> roleNameList = roleService.getRoleNameList(l.getId()).stream().map(RoleName::name).collect(Collectors.toList());
+            l.setRole(roleNameList);
+        }
+        return list;
     }
 
     @Override
@@ -135,17 +144,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public IntrospectResponse introspect(HttpServletRequest request){
-        String token = request.getHeader("Authorization");
-
+    public IntrospectResponse introspect(IntrospectRequest request){
+        String token = request.getToken();
         if(StringUtils.isBlank(token))
             throw new InvalidDataException("token must be not blank");
 
         final String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
-        UserCredential userCredential = userCredentialRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("Username not found"));
-        if(jwtService.isValidToken(token, TokenType.ACCESS_TOKEN, userCredential)) {
+        Optional<UserCredential> userCredential = userCredentialRepository.findByUsername(username);
+        if (userCredential.isEmpty())
             return IntrospectResponse.builder()
-                    .userId(userCredential.getId())
+                    .isValid(false)
+                    .build();
+        List<String> roleNameList = roleService.getRoleNameList(userCredential.get().getId()).stream().map(RoleName::name).collect(Collectors.toList());
+
+        if(jwtService.isValidToken(token, TokenType.ACCESS_TOKEN, userCredential.get())) {
+            return IntrospectResponse.builder()
+                    .userId(userCredential.get().getId())
+                    .username(userCredential.get().getUsername())
+                    .roleName(roleNameList)
+                    .expiresAt(jwtService.extractExpiresAt(token, TokenType.ACCESS_TOKEN))
                     .isValid(true)
                     .build();
         }
@@ -207,7 +224,7 @@ public class AuthServiceImpl implements AuthService {
                 .build());
 
         // TODO send email to user
-        String confirmLink = String.format("curl --location 'http://localhost:8081/api/v1/auth/reset-password' \\\n" +
+        String confirmLink = String.format("curl --location 'http://localhost:8083/api/v1/auth/reset-password' \\\n" +
                 "--header 'accept: */*' \\\n" +
                 "--header 'Content-Type: application/json' \\\n" +
                 "--data '%s'", resetToken);
@@ -260,4 +277,15 @@ public class AuthServiceImpl implements AuthService {
 
         return user;
     }
+
+    @Override
+    public String assignRole(AssignRoleRequest request) {
+        return roleService.assignRole(request);
+    }
+
+    @Override
+    public String revokeRole(AssignRoleRequest request){
+        return roleService.revokeRole(request);
+    }
+
 }

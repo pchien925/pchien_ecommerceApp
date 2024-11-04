@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
@@ -21,13 +22,12 @@ import java.util.List;
 @Slf4j
 public class AuthController {
     private final AuthService authService;
-    private final EmailService emailService;
 
     @GetMapping("/myInfo")
-    public ApiResponse<UserCredentialResponse> getUserCredential(HttpServletRequest request){
+    public ApiResponse<UserCredentialResponse> getUserCredential(){
         return ApiResponse.<UserCredentialResponse>builder()
                 .status(HttpStatus.OK.value())
-                .data(authService.getUserCredential(request))
+                .data(authService.getUserCredential())
                 .build();
     }
 
@@ -49,7 +49,7 @@ public class AuthController {
 
 
     @PostMapping("/verifyToken")
-    public ApiResponse<IntrospectResponse> verifyToken(HttpServletRequest request){
+    public ApiResponse<IntrospectResponse> verifyToken(@RequestBody IntrospectRequest request){
         return ApiResponse.<IntrospectResponse>builder()
                 .data(authService.introspect(request))
                 .build();
@@ -110,4 +110,21 @@ public class AuthController {
                 .data(authService.changePassword(resetPasswordRequest))
                 .build();
     }
+
+    @PostMapping("/assignRole")
+    public ApiResponse<String> assignRole(@RequestBody AssignRoleRequest assignRoleRequest){
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .data(authService.assignRole(assignRoleRequest))
+                .build();
+    }
+
+    @PostMapping("/revokeRole")
+    public ApiResponse<String> revokeRole(@RequestBody AssignRoleRequest assignRoleRequest){
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .data(authService.revokeRole(assignRoleRequest))
+                .build();
+    }
+
 }

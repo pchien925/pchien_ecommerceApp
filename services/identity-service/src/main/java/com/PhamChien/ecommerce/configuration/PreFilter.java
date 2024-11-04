@@ -34,8 +34,9 @@ public class PreFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("---------- doFilterInternal ----------");
-        final String authorization = request.getHeader("Authorization");
-        log.info("Authorization: {}", authorization);
+
+        final String authorization = request.getHeader(AUTHORIZATION);
+        //log.info("Authorization: {}", authorization);
 
         if (StringUtils.isBlank(authorization) || !authorization.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -43,20 +44,21 @@ public class PreFilter extends OncePerRequestFilter {
         }
 
         final String token = authorization.substring("Bearer ".length());
-        log.info("Token: {}", token);
+        //log.info("Token: {}", token);
 
         final String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
         log.info("Username: {}", username);
 
-        if(StringUtils.isNotEmpty(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if(jwtService.isValidToken(token, TokenType.ACCESS_TOKEN, userDetailsService.loadUserByUsername(username)))
+            log.info("authenticated user");
+
+        if(SecurityContextHolder.getContext().getAuthentication() == null) {
             UserCredential userCredential = userDetailsService.loadUserByUsername(username);
-            if(jwtService.isValidToken(token, TokenType.ACCESS_TOKEN, userCredential)) {
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userCredential, null, userCredential.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                context.setAuthentication(authentication);
-                SecurityContextHolder.setContext(context);
-            }
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetailsService.loadUserByUsername(username), null, userCredential.getAuthorities());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
         }
         filterChain.doFilter(request, response);
     }
