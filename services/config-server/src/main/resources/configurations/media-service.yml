@@ -1,0 +1,16 @@
+server:
+  port: 8086
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/media_service
+    username: root
+    password: 25092004chien
+  jpa:
+    hibernate.ddl-auto: update
+    show-sql: true
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+

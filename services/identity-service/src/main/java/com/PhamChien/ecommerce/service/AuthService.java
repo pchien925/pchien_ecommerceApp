@@ -23,7 +23,7 @@ public interface AuthService {
 
     TokenResponse refresh(HttpServletRequest request);
 
-    String logout(HttpServletRequest request);
+    String logout(String request);
 
     String forgotPassword(String email);
 

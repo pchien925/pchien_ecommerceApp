@@ -80,10 +80,10 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ApiResponse<String> logout(HttpServletRequest request){
+    public ApiResponse<String> logout(@RequestHeader("Authorization") String authorizationHeader){
      return ApiResponse.<String>builder()
              .status(HttpStatus.OK.value())
-             .data(authService.logout(request))
+             .data(authService.logout(authorizationHeader))
              .build();
     }
 
