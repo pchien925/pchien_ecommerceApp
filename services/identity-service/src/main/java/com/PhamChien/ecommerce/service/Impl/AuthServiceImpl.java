@@ -194,8 +194,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String logout(HttpServletRequest request){
-        String token = request.getHeader("REFERER");
+    public String logout(String request){
+        String token = request.replace("Bearer ", "");
 
         if(StringUtils.isBlank(token))
             throw new InvalidDataException("token must be not blank");
