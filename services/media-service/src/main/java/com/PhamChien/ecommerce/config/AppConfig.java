@@ -22,8 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class AppConfig {
-    //private String[] PUBLIC_ENDPOINTS = {""};
-
+    private final String[] WHITE_LIST = {"/**"};
     private final CustomJwtDecoder customJwtDecoder;
 
     @Bean
@@ -33,8 +32,8 @@ public class AppConfig {
         http.cors(Customizer.withDefaults())
         .authorizeHttpRequests(requests -> {
             requests
-                    //.requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                    .anyRequest().permitAll();
+                    .requestMatchers(WHITE_LIST).permitAll()
+                    .anyRequest().authenticated();
         });
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
                         .decoder(customJwtDecoder)
@@ -44,20 +43,6 @@ public class AppConfig {
         // Bỏ qua CSRF
         http.csrf(AbstractHttpConfigurer::disable);
         return http.build();
-    }
-
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowedHeaders("*")
-                        .maxAge(3600);
-            }
-        };
     }
 
     @Bean

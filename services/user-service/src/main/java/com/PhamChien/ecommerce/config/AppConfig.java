@@ -26,8 +26,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class AppConfig {
 
-    private String[] PUBLIC_ENDPOINTS = {"/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/activate-account", "/api/v1/auth/verifyToken", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password", "/api/v1/auth/change-password"};
-
+    private final String[] WHITE_LIST = {"/**"};
     private final CustomJwtDecoder customJwtDecoder;
 
     @Bean
@@ -37,7 +36,7 @@ public class AppConfig {
         http.cors(Customizer.withDefaults())
         .authorizeHttpRequests(requests -> {
             requests
-                    .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                    .requestMatchers(WHITE_LIST).permitAll()
                     .anyRequest().authenticated();
         });
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
@@ -48,20 +47,6 @@ public class AppConfig {
         // Bỏ qua CSRF
         http.csrf(AbstractHttpConfigurer::disable);
         return http.build();
-    }
-
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowedHeaders("*")
-                        .maxAge(3600);
-            }
-        };
     }
 
     @Bean

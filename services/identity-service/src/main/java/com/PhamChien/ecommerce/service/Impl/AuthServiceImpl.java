@@ -1,17 +1,16 @@
 package com.PhamChien.ecommerce.service.Impl;
 
+import com.PhamChien.ecommerce.domain.Account;
 import com.PhamChien.ecommerce.domain.Token;
-import com.PhamChien.ecommerce.domain.UserCredential;
 import com.PhamChien.ecommerce.dto.request.*;
+import com.PhamChien.ecommerce.dto.response.AccountResponse;
 import com.PhamChien.ecommerce.dto.response.IntrospectResponse;
 import com.PhamChien.ecommerce.dto.response.TokenResponse;
-import com.PhamChien.ecommerce.dto.response.UserCredentialResponse;
 import com.PhamChien.ecommerce.exception.InvalidDataException;
 import com.PhamChien.ecommerce.exception.ResourceNotFoundException;
-import com.PhamChien.ecommerce.mapper.UserCredentialMapper;
-import com.PhamChien.ecommerce.repository.RoleRepository;
-import com.PhamChien.ecommerce.repository.UserCredentialHasRoleRepository;
-import com.PhamChien.ecommerce.repository.UserCredentialRepository;
+import com.PhamChien.ecommerce.exception.UnauthenticatedException;
+import com.PhamChien.ecommerce.mapper.AccountMapper;
+import com.PhamChien.ecommerce.repository.AccountRepository;
 import com.PhamChien.ecommerce.service.*;
 import com.PhamChien.ecommerce.util.RoleName;
 import com.PhamChien.ecommerce.util.TokenType;
@@ -19,9 +18,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,50 +32,50 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final UserCredentialRepository userCredentialRepository;
+    private final AccountRepository accountRepository;
     private final EmailService emailService;
-    private final UserCredentialMapper userCredentialMapper;
+    private final AccountMapper accountMapper;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
-    private final UserCredentialHasRoleRepository userCredentialHasRoleRepository;
-    private final RoleRepository roleRepository;
     private final RoleService roleService;
 
     @Override
     public TokenResponse authenticate(LoginRequest request){
-        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        if(!authenticate.isAuthenticated()){
-            throw new ResourceNotFoundException("Invalid username or password");
-        }
-        UserCredential userCredential = (UserCredential) authenticate.getPrincipal();
-        String accessToken = jwtService.generateAccessToken(userCredential);
-        String refreshToken = jwtService.generateRefreshToken(userCredential);
+        var account = accountRepository
+                .findByUsername(request.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Username not correct"));
+
+        boolean authenticated = passwordEncoder.matches(request.getPassword(), account.getPassword());
+
+        if (!authenticated) throw new UnauthenticatedException("Unauthenticated");
+
+        String accessToken = jwtService.generateAccessToken(account);
+        String refreshToken = jwtService.generateRefreshToken(account);
 
         tokenService.save(Token.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
-                        .username(userCredential.getUsername())
+                        .username(account.getUsername())
                 .build());
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .userId(userCredential.getId())
+                .accountId(account.getId())
                 .build();
     }
     @Override
-    public UserCredentialResponse getUserCredential(){
+    public AccountResponse getAccount(){
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Optional<UserCredential> userCredential = userCredentialRepository.findByUsername(username);
-        if (userCredential.isEmpty()) {
-            throw new ResourceNotFoundException("User Credential not found with username: " + username);
+        Optional<Account> account = accountRepository.findByUsername(username);
+        if (account.isEmpty()) {
+            throw new ResourceNotFoundException("Account not found with username: " + username);
         }
-        List<String> roleNameList = roleService.getRoleNameList(userCredential.get().getId()).stream().map(RoleName::name).collect(Collectors.toList());
-        UserCredentialResponse response = userCredentialMapper.toUserCredentialResponse(userCredential.get());
+        List<String> roleNameList = roleService.getRoleNameList(account.get().getId()).stream().map(RoleName::name).collect(Collectors.toList());
+        AccountResponse response = accountMapper.toAccountResponse(account.get());
 
         response.setRole(roleNameList);
 
@@ -87,8 +83,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public List<UserCredentialResponse> findAll(){
-        List<UserCredentialResponse> list = userCredentialRepository.findAll().stream().map(userCredentialMapper::toUserCredentialResponse).toList();
+    public List<AccountResponse> findAll(){
+        List<AccountResponse> list = accountRepository.findAll().stream().map(accountMapper::toAccountResponse).toList();
 
         for (var l : list){
             List<String> roleNameList = roleService.getRoleNameList(l.getId()).stream().map(RoleName::name).collect(Collectors.toList());
@@ -98,13 +94,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserCredentialResponse registerUser(RegisterRequest registerRequest) {
-        if(userCredentialRepository.existsByEmail(registerRequest.getEmail()))
+    public AccountResponse registerUser(RegisterRequest registerRequest) {
+        if(accountRepository.existsByEmail(registerRequest.getEmail()))
             throw new ResourceNotFoundException("Email already exists");
-        if(userCredentialRepository.existsByUsername(registerRequest.getUsername()))
+        if(accountRepository.existsByUsername(registerRequest.getUsername()))
             throw new ResourceNotFoundException("Username already exists");
 
-        UserCredential userCredential  = UserCredential.builder()
+        Account account = Account.builder()
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .email(registerRequest.getEmail())
@@ -114,33 +110,33 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         emailService.sendSimpleMail(SendMailRequest.builder()
-                .recipient(userCredential.getEmail())
+                .recipient(account.getEmail())
                 .subject("acctive account")
-                .msgBody("http://localhost:8081/api/v1/auth/activate-account?code=" + userCredential.getVerificationCode())
+                .msgBody("http://localhost:8082/api/v1/auth/activate-account?code=" + account.getVerificationCode())
                 .build());
 
-        return userCredentialMapper.toUserCredentialResponse(userCredentialRepository.save(userCredential));
+        return accountMapper.toAccountResponse(accountRepository.save(account));
     }
 
     @Override
-    public UserCredentialResponse activateAccount(String verificationCode) {
-        UserCredential userCredential = userCredentialRepository.findByVerificationCode(verificationCode).orElseThrow(() -> new ResourceNotFoundException("User Credential not found"));
-        if(userCredential.getVerificationCodeExpiry().isBefore(LocalDateTime.now())) {
+    public AccountResponse activateAccount(String verificationCode) {
+        Account account = accountRepository.findByVerificationCode(verificationCode).orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        if(account.getVerificationCodeExpiry().isBefore(LocalDateTime.now())) {
             emailService.sendSimpleMail(SendMailRequest.builder()
-                    .recipient(userCredential.getEmail())
+                    .recipient(account.getEmail())
                     .subject("acctive account")
-                    .msgBody("http://localhost:8081/api/v1/auth/activate-account?verificationCode=" + userCredential.getVerificationCode())
+                    .msgBody("http://localhost:8082/api/v1/auth/activate-account?verificationCode=" + account.getVerificationCode())
                     .build());
             throw new RuntimeException("Activation Token has expired, a new activation token has been sent");
         }
 
-        UserCredential user = userCredentialRepository.findByVerificationCode(verificationCode)
-                .orElseThrow(() -> new UsernameNotFoundException("User Credential not found"));
+        Account user = accountRepository.findByVerificationCode(verificationCode)
+                .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
 
         user.setIsActive(true);
         user.setVerificationCode(null);
         user.setVerificationCodeExpiry(null);
-        return userCredentialMapper.toUserCredentialResponse(userCredentialRepository.save(userCredential));
+        return accountMapper.toAccountResponse(accountRepository.save(account));
     }
 
     @Override
@@ -150,17 +146,17 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidDataException("token must be not blank");
 
         final String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
-        Optional<UserCredential> userCredential = userCredentialRepository.findByUsername(username);
-        if (userCredential.isEmpty())
+        Optional<Account> account = accountRepository.findByUsername(username);
+        if (account.isEmpty())
             return IntrospectResponse.builder()
                     .isValid(false)
                     .build();
-        List<String> roleNameList = roleService.getRoleNameList(userCredential.get().getId()).stream().map(RoleName::name).collect(Collectors.toList());
+        List<String> roleNameList = roleService.getRoleNameList(account.get().getId()).stream().map(RoleName::name).collect(Collectors.toList());
 
-        if(jwtService.isValidToken(token, TokenType.ACCESS_TOKEN, userCredential.get())) {
+        if(jwtService.isValidToken(token, TokenType.ACCESS_TOKEN, account.get())) {
             return IntrospectResponse.builder()
-                    .userId(userCredential.get().getId())
-                    .username(userCredential.get().getUsername())
+                    .accountId(account.get().getId())
+                    .username(account.get().getUsername())
                     .roleName(roleNameList)
                     .expiresAt(jwtService.extractExpiresAt(token, TokenType.ACCESS_TOKEN))
                     .isValid(true)
@@ -178,18 +174,18 @@ public class AuthServiceImpl implements AuthService {
 
         final String username = jwtService.extractUsername(token, TokenType.REFRESH_TOKEN);
 
-        UserCredential userCredential = userCredentialRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User credential not found"));
+        Account account = accountRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("Account not found"));
 
-        if(!jwtService.isValidToken(token, TokenType.REFRESH_TOKEN, userCredential)){
+        if(!jwtService.isValidToken(token, TokenType.REFRESH_TOKEN, account)){
             throw new InvalidDataException("Invalid token");
         }
 
-        String accessToken = jwtService.generateAccessToken(userCredential);
+        String accessToken = jwtService.generateAccessToken(account);
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(token)
-                .userId(userCredential.getId())
+                .accountId(account.getId())
                 .build();
     }
 
@@ -209,17 +205,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String forgotPassword(String email){
-        Optional<UserCredential> userCredential = userCredentialRepository.findByEmail(email);
-        if(userCredential.isEmpty()){
+        Optional<Account> account = accountRepository.findByEmail(email);
+        if(account.isEmpty()){
             throw new InvalidDataException("Email does not exist");
         }
 
         // generate reset token
-        String resetToken = jwtService.generateResetToken(userCredential.get());
+        String resetToken = jwtService.generateResetToken(account.get());
 
         // save to db
         tokenService.save(Token.builder()
-                        .username(userCredential.get().getUsername())
+                        .username(account.get().getUsername())
                         .resetToken(resetToken)
                 .build());
 
@@ -231,7 +227,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("--> confirmLink: {}", confirmLink);
 
         emailService.sendSimpleMail(SendMailRequest.builder()
-                .recipient(userCredential.get().getEmail())
+                .recipient(account.get().getEmail())
                 .subject("reset password")
                 .msgBody(confirmLink)
                 .build());
@@ -244,10 +240,10 @@ public class AuthServiceImpl implements AuthService {
         log.info("---------- resetPassword ----------");
 
         // validate token
-        var userCredential = validateToken(resetKey);
+        var account = validateToken(resetKey);
 
         // check token by username
-        tokenService.getByUsername(userCredential.getUsername());
+        tokenService.getByUsername(account.getUsername());
 
         return "Reset";
     }
@@ -257,21 +253,21 @@ public class AuthServiceImpl implements AuthService {
         if (!resetPasswordRequest.getPassword().equals(resetPasswordRequest.getConfirmPassword())){
             throw new InvalidDataException("Passwords do not match");
         }
-        var userCredential = validateToken(resetPasswordRequest.getKey());
+        var account = validateToken(resetPasswordRequest.getKey());
 
-        userCredential.setPassword(passwordEncoder.encode(resetPasswordRequest.getPassword()));
-        userCredentialRepository.save(userCredential);
-        tokenService.delete(tokenService.getByUsername(userCredential.getUsername()));
+        account.setPassword(passwordEncoder.encode(resetPasswordRequest.getPassword()));
+        accountRepository.save(account);
+        tokenService.delete(tokenService.getByUsername(account.getUsername()));
         return "Password changed";
     }
 
-    private UserCredential validateToken(String token) {
+    private Account validateToken(String token) {
         // validate token
         var userName = jwtService.extractUsername(token, TokenType.RESET_TOKEN);
 
         // validate user is active or not
-        var user = userCredentialRepository.findByUsername(userName).orElseThrow(() -> new ResourceNotFoundException("Username not found"));
-        if (!user.isEnabled()) {
+        var user = accountRepository.findByUsername(userName).orElseThrow(() -> new ResourceNotFoundException("Username not found"));
+        if (!user.getIsActive()) {
             throw new InvalidDataException("User not active");
         }
 

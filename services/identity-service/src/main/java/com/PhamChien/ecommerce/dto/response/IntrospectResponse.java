@@ -14,7 +14,7 @@ import java.util.Set;
 @Getter
 public class IntrospectResponse {
     private boolean isValid;
-    private String userId;
+    private String accountId;
     private String username;
     private List<String> roleName;
     private Date expiresAt;

@@ -1,9 +1,9 @@
 package com.PhamChien.ecommerce.service;
 
 import com.PhamChien.ecommerce.dto.request.*;
+import com.PhamChien.ecommerce.dto.response.AccountResponse;
 import com.PhamChien.ecommerce.dto.response.IntrospectResponse;
 import com.PhamChien.ecommerce.dto.response.TokenResponse;
-import com.PhamChien.ecommerce.dto.response.UserCredentialResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -11,13 +11,13 @@ import java.util.List;
 public interface AuthService {
     TokenResponse authenticate(LoginRequest request);
 
-    UserCredentialResponse getUserCredential();
+    AccountResponse getAccount();
 
-    List<UserCredentialResponse> findAll();
+    List<AccountResponse> findAll();
 
-    UserCredentialResponse registerUser(RegisterRequest registerRequest);
+    AccountResponse registerUser(RegisterRequest registerRequest);
 
-    UserCredentialResponse activateAccount(String verificationCode);
+    AccountResponse activateAccount(String verificationCode);
 
     IntrospectResponse introspect(IntrospectRequest request);
 

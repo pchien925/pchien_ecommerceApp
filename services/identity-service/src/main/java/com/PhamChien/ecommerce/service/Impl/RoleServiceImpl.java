@@ -1,12 +1,12 @@
 package com.PhamChien.ecommerce.service.Impl;
 
 import com.PhamChien.ecommerce.domain.Role;
-import com.PhamChien.ecommerce.domain.UserCredentialHasRole;
+import com.PhamChien.ecommerce.domain.AccountHasRole;
 import com.PhamChien.ecommerce.dto.request.AssignRoleRequest;
 import com.PhamChien.ecommerce.exception.ResourceNotFoundException;
 import com.PhamChien.ecommerce.repository.RoleRepository;
-import com.PhamChien.ecommerce.repository.UserCredentialHasRoleRepository;
-import com.PhamChien.ecommerce.repository.UserCredentialRepository;
+import com.PhamChien.ecommerce.repository.AccountHasRoleRepository;
+import com.PhamChien.ecommerce.repository.AccountRepository;
 import com.PhamChien.ecommerce.service.RoleService;
 import com.PhamChien.ecommerce.util.RoleName;
 import lombok.RequiredArgsConstructor;
@@ -19,33 +19,33 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
 
-    private final UserCredentialHasRoleRepository userCredentialHasRoleRepository;
+    private final AccountHasRoleRepository accountHasRoleRepository;
     private final RoleRepository roleRepository;
-    private final UserCredentialRepository userCredentialRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     public String assignRole(AssignRoleRequest request) {
-        if(userCredentialHasRoleRepository.existsByRole_IdAndUserCredential_Id(request.getRoleId(), request.getUserCredentialId())){
+        if(accountHasRoleRepository.existsByRole_IdAndAccount_Id(request.getRoleId(), request.getAccountID())){
             return "user had this role";
         }
-        UserCredentialHasRole user = new UserCredentialHasRole();
-        user.setUserCredential(userCredentialRepository.findById(request.getUserCredentialId()).orElseThrow(() -> new ResourceNotFoundException("User Credential Not Found")));
+        AccountHasRole user = new AccountHasRole();
+        user.setAccount(accountRepository.findById(request.getAccountID()).orElseThrow(() -> new ResourceNotFoundException("Account Not Found")));
         user.setRole(roleRepository.findById(request.getRoleId()).orElseThrow(() -> new ResourceNotFoundException("role not found")));
-        userCredentialHasRoleRepository.save(user);
+        accountHasRoleRepository.save(user);
         return "role assigned";
     }
 
     @Override
     public String revokeRole(AssignRoleRequest request) {
 
-        UserCredentialHasRole user =  userCredentialHasRoleRepository.findByRole_IdAndUserCredential_Id(request.getRoleId(), request.getUserCredentialId()).orElseThrow(() -> new ResourceNotFoundException("User not had this role"));
-        userCredentialHasRoleRepository.deleteById(user.getId());
+        AccountHasRole user =  accountHasRoleRepository.findByRole_IdAndAccount_Id(request.getRoleId(), request.getAccountID()).orElseThrow(() -> new ResourceNotFoundException("User not had this role"));
+        accountHasRoleRepository.deleteById(user.getId());
         return "role revoked";
     }
 
     @Override
-    public List<RoleName> getRoleNameList(String userCreadentialId){
-        List<Role> roleList = roleRepository.findAllByUserCredentialId(userCreadentialId);
+    public List<RoleName> getRoleNameList(String accountId){
+        List<Role> roleList = roleRepository.findAllByAccountId(accountId);
         return roleList.stream().map(Role::getName).collect(Collectors.toList());
     }
 }

@@ -1,7 +1,7 @@
 package com.PhamChien.ecommerce.service.Impl;
 
+import com.PhamChien.ecommerce.domain.Account;
 import com.PhamChien.ecommerce.domain.Role;
-import com.PhamChien.ecommerce.domain.UserCredential;
 import com.PhamChien.ecommerce.exception.InvalidDataException;
 import com.PhamChien.ecommerce.repository.RoleRepository;
 import com.PhamChien.ecommerce.service.JwtService;
@@ -13,7 +13,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -48,18 +47,18 @@ public class JwtServiceImpl implements JwtService {
 
 
     @Override
-    public String generateAccessToken(UserCredential userCredential) {
+    public String generateAccessToken(Account account) {
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
 
-        List<Role> roles = roleRepository.findAllByUserCredentialId(userCredential.getId());
+        List<Role> roles = roleRepository.findAllByAccountId(account.getId());
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(userCredential.getUsername())
+                .subject(account.getUsername())
                 .issuer("PhamChien")
                 .issueTime(new Date())
                 .expirationTime(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * expiryHour)))
-                .claim("userID", userCredential.getId())
-                .claim("roles", buildScope(userCredential))
+                .claim("accountID", account.getId())
+                .claim("roles", buildScope(account))
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
 
@@ -77,15 +76,15 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateRefreshToken(UserCredential userCredential) {
+    public String generateRefreshToken(Account account) {
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(userCredential.getUsername())
+                .subject(account.getUsername())
                 .issuer("PhamChien")
                 .issueTime(new Date())
                 .expirationTime(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * expiryDay)))
-                .claim("userID", userCredential.getId())
+                .claim("userID", account.getId())
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
 
@@ -103,14 +102,14 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateResetToken(UserCredential userCredential) {
+    public String generateResetToken(Account account) {
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(userCredential.getUsername())
+                .subject(account.getUsername())
                 .issuer("PhamChien")
                 .expirationTime(new Date(System.currentTimeMillis() + (1000 * 60 * 60)))
-                .claim("userID", userCredential.getId())
+                .claim("userID", account.getId())
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
 
@@ -139,9 +138,9 @@ public class JwtServiceImpl implements JwtService {
 
 
     @Override
-    public boolean isValidToken(String token, TokenType type, UserCredential userCredential){
+    public boolean isValidToken(String token, TokenType type, Account account){
         String username = jwtClaimsSet(token, type).getSubject();
-        return (username.equals(userCredential.getUsername()) && !isTokenExpired(token, type));
+        return (username.equals(account.getUsername()) && !isTokenExpired(token, type));
     }
 
 
@@ -176,10 +175,10 @@ public class JwtServiceImpl implements JwtService {
         }
     }
 
-    private String buildScope(UserCredential user) {
+    private String buildScope(Account user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
 
-        List<Role> roles = roleRepository.findAllByUserCredentialId(user.getId());
+        List<Role> roles = roleRepository.findAllByAccountId(user.getId());
 
 
         if (!CollectionUtils.isEmpty(user.getRoles()))

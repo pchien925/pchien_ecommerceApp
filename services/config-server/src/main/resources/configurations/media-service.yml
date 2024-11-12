@@ -8,9 +8,10 @@ spring:
   jpa:
     hibernate.ddl-auto: update
     show-sql: true
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
 
+openapi:
+  service:
+    api-docs: media-service
+    server: http://localhost:8086
+    title: Media service
+    version: 1.0.0

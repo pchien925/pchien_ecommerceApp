@@ -1,21 +1,20 @@
 package com.PhamChien.ecommerce.service;
 
-import com.PhamChien.ecommerce.domain.UserCredential;
+import com.PhamChien.ecommerce.domain.Account;
 import com.PhamChien.ecommerce.util.TokenType;
-import com.nimbusds.jwt.JWTClaimsSet;
 
 import java.util.Date;
 
 public interface JwtService {
-    String generateAccessToken(UserCredential userCredential);
+    String generateAccessToken(Account account);
 
-    String generateRefreshToken(UserCredential userCredential);
+    String generateRefreshToken(Account account);
 
-    String generateResetToken(UserCredential userCredential);
+    String generateResetToken(Account account);
 
     String extractUsername(String Token, TokenType type);
 
     Date extractExpiresAt(String token, TokenType type);
 
-    boolean isValidToken(String token, TokenType type, UserCredential userCredential);
+    boolean isValidToken(String token, TokenType type, Account account);
 }

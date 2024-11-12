@@ -12,5 +12,5 @@ import java.time.LocalDateTime;
 public class TokenResponse {
     private String accessToken;
     private String refreshToken;
-    private String userId;
+    private String accountId;
 }

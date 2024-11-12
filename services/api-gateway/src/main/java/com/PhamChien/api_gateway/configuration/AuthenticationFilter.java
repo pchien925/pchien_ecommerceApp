@@ -1,7 +1,6 @@
 package com.PhamChien.api_gateway.configuration;
 
 import com.PhamChien.api_gateway.dto.response.ApiResponse;
-import com.PhamChien.api_gateway.dto.response.IntrospectResponse;
 import com.PhamChien.api_gateway.service.IdentityService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +24,7 @@ import reactor.core.publisher.Mono;
 
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 @Component
@@ -36,15 +36,17 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private final ObjectMapper jacksonObjectMapper;
 
     @NonFinal
-    private String[] PUBLIC_ENDPOINTS = {"/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/activate-account", "/api/v1/auth/verifyToken", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password", "/api/v1/auth/change-password", "/actuator/**", "/v3/**", "/webjars/**", "/swagger-ui*/*swagger-initializer.js", "/swagger-ui*/**"};
+    private String[] PUBLIC_ENDPOINTS = {"/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/activate-account", "/api/v1/auth/verifyToken", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password", "/api/v1/auth/change-password"};
 
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         log.info("---Authentication global filter----");
 
+        ServerHttpRequest request = exchange.getRequest();
+        String url = request.getPath().toString();
         //xử lí publicEndpoint
-        if(publicEndpoint(exchange.getRequest())){
+        if(isWhiteListURL(url) || url.contains("/v3/api-docs/")){
             return chain.filter(exchange);
         }
 
@@ -59,10 +61,14 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
         return identityService.introspect(token).flatMap(introspectResponseApiResponse ->
         {
-            if (introspectResponseApiResponse.getData().isValid())
+            if (introspectResponseApiResponse.getData().isValid()) {
+                log.info("Authentication Successful");
                 return chain.filter(exchange);
-            else
+            }
+            else {
+                log.info("Authentication Failed");
                 return unauthenticated(exchange.getResponse());
+            }
         }).onErrorResume(throwable -> unauthenticated(exchange.getResponse()));
     }
 
@@ -71,12 +77,16 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         return -1;
     }
 
-    private boolean publicEndpoint(ServerHttpRequest request){
-        return Arrays.stream(PUBLIC_ENDPOINTS)
-                .anyMatch(s -> request.getURI().getPath().matches(s));
+    private boolean isWhiteListURL(String url) {
+        List<String> permitUrls = new LinkedList<>();
+        permitUrls.add("/auth/login");
+        permitUrls.add("/refresh-token");
+
+        return permitUrls.contains(url);
     }
 
     Mono<Void> unauthenticated(ServerHttpResponse response) {
+        log.info("Unauthenticated");
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .data("Unauthenticated")

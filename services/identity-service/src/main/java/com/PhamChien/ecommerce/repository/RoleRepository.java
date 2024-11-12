@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Integer> {
 
-    @Query(value = "select r from Role r inner join UserCredentialHasRole u on r.id = u.role.id where u.userCredential.id=:userCredentialId")
-    List<Role> findAllByUserCredentialId(String userCredentialId);
+    @Query(value = "select r from Role r inner join AccountHasRole u on r.id = u.role.id where u.account.id=:accountId")
+    List<Role> findAllByAccountId(String accountId);
     Optional<Role> findByName(String roleName);
 }

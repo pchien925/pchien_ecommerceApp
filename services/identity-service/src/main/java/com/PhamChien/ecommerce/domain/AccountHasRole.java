@@ -9,8 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_credential_has_role")
-public class UserCredentialHasRole extends AbstractEntity{
+@Table(name = "account_has_role")
+public class AccountHasRole extends AbstractEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -21,6 +21,6 @@ public class UserCredentialHasRole extends AbstractEntity{
     private Role role;
 
     @ManyToOne
-    @JoinColumn(name = "user_credential_id")
-    private UserCredential userCredential;
+    @JoinColumn(name = "account_id")
+    private Account account;
 }

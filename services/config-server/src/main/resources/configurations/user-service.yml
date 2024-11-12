@@ -8,9 +8,10 @@ spring:
   jpa:
     hibernate.ddl-auto: update
     show-sql: true
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
 
+openapi:
+  service:
+    api-docs: user-service
+    server: http://localhost:8082
+    title: User service
+    version: 1.0.0

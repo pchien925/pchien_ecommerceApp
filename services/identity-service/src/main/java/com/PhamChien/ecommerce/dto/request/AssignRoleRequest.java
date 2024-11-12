@@ -5,5 +5,5 @@ import lombok.Getter;
 @Getter
 public class AssignRoleRequest {
     Integer roleId;
-    String userCredentialId;
+    String accountID;
 }

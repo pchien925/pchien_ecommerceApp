@@ -1,19 +1,14 @@
 package com.PhamChien.ecommerce.controller;
 
-import com.PhamChien.ecommerce.domain.UserCredential;
 import com.PhamChien.ecommerce.dto.request.*;
 import com.PhamChien.ecommerce.dto.response.*;
 import com.PhamChien.ecommerce.service.AuthService;
-import com.PhamChien.ecommerce.service.EmailService;
-import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.ParseException;
 import java.util.List;
 
 @RestController
@@ -24,16 +19,16 @@ public class AuthController {
     private final AuthService authService;
 
     @GetMapping("/myInfo")
-    public ApiResponse<UserCredentialResponse> getUserCredential(){
-        return ApiResponse.<UserCredentialResponse>builder()
+    public ApiResponse<AccountResponse> getUserCredential(){
+        return ApiResponse.<AccountResponse>builder()
                 .status(HttpStatus.OK.value())
-                .data(authService.getUserCredential())
+                .data(authService.getAccount())
                 .build();
     }
 
     @GetMapping
-    public ApiResponse<List<UserCredentialResponse>> findAll(){
-        return ApiResponse.<List<UserCredentialResponse>>builder()
+    public ApiResponse<List<AccountResponse>> findAll(){
+        return ApiResponse.<List<AccountResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .data(authService.findAll())
                 .build();
@@ -41,8 +36,8 @@ public class AuthController {
 
 
     @GetMapping("/activate-account")
-    public ApiResponse<UserCredentialResponse> verifyUser(@RequestParam("code") String verificationCode){
-        return ApiResponse.<UserCredentialResponse>builder()
+    public ApiResponse<AccountResponse> verifyUser(@RequestParam("code") String verificationCode){
+        return ApiResponse.<AccountResponse>builder()
                 .data(authService.activateAccount(verificationCode))
                 .build();
     }
@@ -56,10 +51,10 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ApiResponse<UserCredentialResponse> registerUser(@RequestBody RegisterRequest registerRequest) {
-        UserCredentialResponse userCredentialResponse = authService.registerUser(registerRequest);
-        return ApiResponse.<UserCredentialResponse>builder()
-                .data(userCredentialResponse)
+    public ApiResponse<AccountResponse> registerUser(@RequestBody RegisterRequest registerRequest) {
+        AccountResponse accountResponse = authService.registerUser(registerRequest);
+        return ApiResponse.<AccountResponse>builder()
+                .data(accountResponse)
                 .build();
     }
 

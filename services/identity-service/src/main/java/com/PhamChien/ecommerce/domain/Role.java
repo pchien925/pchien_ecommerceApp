@@ -36,5 +36,5 @@ public class Role extends AbstractEntity{
 
     @OneToMany(mappedBy = "role")
     @JsonIgnore
-    private Set<UserCredentialHasRole> roles = new HashSet<>();
+    private Set<AccountHasRole> roles = new HashSet<>();
 }

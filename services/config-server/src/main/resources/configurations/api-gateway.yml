@@ -8,52 +8,53 @@ spring:
         locator:
           enabled: true
       routes:
-        #USER-SERVICE
-        - id: user-service-info
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/api/v1/users/**
-        - id: user-service-shipping-info
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/api/v1/profiles/**
 
         #IDENTITY-SERVICE
         - id: identity-service
           uri: lb://IDENTITY-SERVICE
           predicates:
-            - Path=/api/v1/auth/**
+            - Path=/api/v1/auth/**, /v3/api-docs/identity-service
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
 
         #PRODUCT-SERVICE
-        - id: product-service-product
+        - id: product-service
           uri: lb://PRODUCT-SERVICE
           predicates:
-            - Path=/api/v1/products/**
-        - id: product-service-category
-          uri: lb://PRODUCT-SERVICE
-          predicates:
-            - Path=/api/v1/categories/**
-        - id: product-service-brand
-          uri: lb://PRODUCT-SERVICE
-          predicates:
-            - Path=/api/v1/brands/**
-
-        # OPENAPI DOCS ROUTE
-        - id: openapi
+            - Path=/api/v1/products/**, /api/v1/categories/**, /api/v1/brands/**, /v3/api-docs/product-service
           filters:
-            - RewritePath=/v3/api-docs/(?<segment>.*), /${segment}/v3/api-docs
-          predicates:
-            - Path=/v3/api-docs/**
-          uri: http://localhost:${server.port}
+            - RewritePath=/(?<segment>.*), /$\{segment}
 
+        #USER-SERVICE
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/v1/users/**, /api/v1/profiles/**, /v3/api-docs/user-service
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
+
+        #MEDIA-SERVICE
+        - id: media-service
+          uri: lb://MEDIA-SERVICE
+          predicates:
+            - Path=/api/v1/medias/**, /v3/api-docs/media-service
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
 springdoc:
+  api-docs:
+    enabled: true
   swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
     urls:
-      - name: Identity Service APIs
-        url: /v3/api-docs/identity
-      - name: Media Service APIs
-        url: /v3/api-docs/medias
-      - name: User Service APIs
-        url: /v3/api-docs/users
-      - name: Product Service APIs
-        url: /v3/api-docs/products
+      - url: /v3/api-docs
+        name: API Gateway
+      - url: /v3/api-docs/identity-service
+        name: Identity Service
+      - url: /v3/api-docs/product-service
+        name: Product Service
+      - url: /v3/api-docs/user-service
+        name: User Service
+      - url: /v3/api-docs/media-service
+        name: Media Service
