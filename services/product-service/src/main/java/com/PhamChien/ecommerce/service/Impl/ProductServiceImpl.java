@@ -218,14 +218,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public String updateQuantity(long productId, int quantity) {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not existed"));
-        product.setQuantity(quantity);
-        productRepository.save(product);
-        return "Product quantity updated";
-    }
-
-    @Override
     public String updateThumbnailUrl(long productId, long mediaId) {
         Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not existed"));
         product.setThumbnailUrl(mediaClient.getMedia(mediaId).getData().getUrl());

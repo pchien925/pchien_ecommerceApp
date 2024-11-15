@@ -17,7 +17,11 @@ spring:
   jpa:
     hibernate.ddl-auto: update
     show-sql: true
-
+  kafka:
+    bootstrap-servers: localhost:29092
+    topic:
+      mailRegister: send-email-register-topic
+      forgotPassword: send-email-forgot-password-topic
 jwt:
   expiryHour: 8
   expiryDay: 24

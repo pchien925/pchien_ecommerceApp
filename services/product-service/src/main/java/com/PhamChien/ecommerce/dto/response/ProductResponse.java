@@ -32,7 +32,6 @@ public class ProductResponse {
 
     private String color;
 
-    private Integer quantity;
 
     private Integer sold;
 

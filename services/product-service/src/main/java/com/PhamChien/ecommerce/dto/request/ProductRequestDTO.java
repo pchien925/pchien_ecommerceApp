@@ -20,7 +20,6 @@ public class ProductRequestDTO {
 
     private String color;
 
-    private int quantity;
 
     private int sold;
 

@@ -37,7 +37,6 @@ public interface ProductService {
 
     String updatePrice(long productId, PriceUpdateRequest request);
 
-    String updateQuantity(long productId, int quantity);
 
     String updateThumbnailUrl(long productId, long mediaId);
 }

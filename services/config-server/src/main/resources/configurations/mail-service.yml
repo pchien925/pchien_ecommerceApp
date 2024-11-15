@@ -1,0 +1,29 @@
+server:
+  port: 8088
+
+spring:
+  mail:
+    from: phamchien9254@gmail.com
+    host: smtp.gmail.com
+    port: 587
+    username: phamchien9254@gmail.com
+    password: oqvc caqw eboj zbwg
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+  kafka:
+    bootstrap-servers: localhost:29092
+
+# API document setting
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+openapi:
+  service:
+    api-docs: mail-service
+    server: http://localhost:${server.port}
+    title: Mail service
+    version: 1.0.0

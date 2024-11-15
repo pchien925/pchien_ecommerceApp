@@ -2,6 +2,6 @@ package com.PhamChien.ecommerce.service;
 
 import com.PhamChien.ecommerce.dto.request.SendMailRequest;
 
-public interface EmailService {
+public interface MailService {
     String sendSimpleMail(SendMailRequest sendMailRequest);
 }

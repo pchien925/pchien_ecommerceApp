@@ -18,6 +18,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,12 +35,18 @@ import java.util.stream.Collectors;
 public class AuthServiceImpl implements AuthService {
 
     private final AccountRepository accountRepository;
-    private final EmailService emailService;
     private final AccountMapper accountMapper;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final RoleService roleService;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    @Value("${spring.kafka.topic.mailRegister}")
+    private String mailRegister;
+
+    @Value("${spring.kafka.topic.forgotPassword}")
+    private String forgotPassword;
 
     @Override
     public TokenResponse authenticate(LoginRequest request){
@@ -108,12 +116,7 @@ public class AuthServiceImpl implements AuthService {
                 .verificationCode(UUID.randomUUID().toString())
                 .verificationCodeExpiry(LocalDateTime.now().plusMinutes(30))
                 .build();
-
-        emailService.sendSimpleMail(SendMailRequest.builder()
-                .recipient(account.getEmail())
-                .subject("acctive account")
-                .msgBody("http://localhost:8082/api/v1/auth/activate-account?code=" + account.getVerificationCode())
-                .build());
+        kafkaTemplate.send(mailRegister, String.format("email=%s,username=%s,code=%s", account.getEmail(), account.getUsername(), account.getVerificationCode()));
 
         return accountMapper.toAccountResponse(accountRepository.save(account));
     }
@@ -122,11 +125,10 @@ public class AuthServiceImpl implements AuthService {
     public AccountResponse activateAccount(String verificationCode) {
         Account account = accountRepository.findByVerificationCode(verificationCode).orElseThrow(() -> new ResourceNotFoundException("Account not found"));
         if(account.getVerificationCodeExpiry().isBefore(LocalDateTime.now())) {
-            emailService.sendSimpleMail(SendMailRequest.builder()
-                    .recipient(account.getEmail())
-                    .subject("acctive account")
-                    .msgBody("http://localhost:8082/api/v1/auth/activate-account?verificationCode=" + account.getVerificationCode())
-                    .build());
+            account.setVerificationCode(UUID.randomUUID().toString());
+            account.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(30));
+            kafkaTemplate.send(mailRegister, String.format("email=%s,id=%s,code=%s", account.getEmail(), account.getId(), account.getVerificationCode()));
+
             throw new RuntimeException("Activation Token has expired, a new activation token has been sent");
         }
 
@@ -226,11 +228,8 @@ public class AuthServiceImpl implements AuthService {
                 "--data '%s'", resetToken);
         log.info("--> confirmLink: {}", confirmLink);
 
-        emailService.sendSimpleMail(SendMailRequest.builder()
-                .recipient(account.get().getEmail())
-                .subject("reset password")
-                .msgBody(confirmLink)
-                .build());
+        kafkaTemplate.send(forgotPassword, String.format("email=%s,body=%s",account.get().getEmail(), confirmLink));
+
 
         return resetToken;
     }

@@ -52,14 +52,6 @@ public class ProductController {
                 .build();
     }
 
-    @PatchMapping("/{productId}/quantity")
-    public ApiResponse<String> updateQuantity(@PathVariable("productId") long productId, @RequestParam int quantity){
-        return ApiResponse.<String>builder()
-                .status(HttpStatus.OK.value())
-                .data(productService.updateQuantity(productId, quantity))
-                .build();
-    }
-
     @PatchMapping("/{productId}/thumbnailUrl")
     public ApiResponse<String> updateThumbnailUrl(@PathVariable("productId") long productId, @RequestParam Long mediaId){
         return ApiResponse.<String>builder()

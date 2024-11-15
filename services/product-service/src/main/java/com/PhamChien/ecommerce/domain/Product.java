@@ -30,8 +30,6 @@ public class Product extends AbstractEntity<Long>{
 
     private String color;
 
-    private Integer quantity;
-
     private Integer sold;
 
     @Column(name = "is_active")
