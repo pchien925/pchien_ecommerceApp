@@ -42,9 +42,6 @@ public class CategoryServiceImpl implements CategoryService {
             throw new InvalidDataException("Category name already exists");
         }
         Category category = categoryMapper.toCategory(requestDTO);
-        Optional<Category> parentCategory = categoryRepository.findById(requestDTO.getParentCategoryId());
-
-        category.setParentCategory(parentCategory.orElse(null));
 
         return categoryMapper.toCategoryResponse(categoryRepository.save(category));
     }
@@ -74,30 +71,12 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toCategoryResponse(category);
     }
 
-    @Override
-    public List<CategoryResponse> getParentCategories() {
-        return categoryRepository.findByParentCategoryIsNull().stream().map(categoryMapper::toCategoryResponse).collect(Collectors.toList());
-    }
 
     @Override
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream().map(categoryMapper::toCategoryResponse).toList();
     }
 
-    @Override
-    public PageResponse<CategoryResponse> getPagingCategories(int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sortBy));
-
-        Page<Category> categories = categoryRepository.findByParentCategoryIsNull(pageable);
-
-        return PageResponse.<CategoryResponse>builder()
-                .currentPage(page)
-                .pageSize(size)
-                .totalPages(categories.getTotalPages())
-                .totalElements(categories.getTotalElements())
-                .content(categories.getContent().stream().map(categoryMapper::toCategoryResponse).toList())
-                .build();
-    }
 
     @Override
     public PageResponse<CategoryResponse> getPagingAllCategories(int page, int size, String sortBy) {
@@ -114,23 +93,5 @@ public class CategoryServiceImpl implements CategoryService {
                 .build();
     }
 
-    @Override
-    public List<CategoryResponse> getSubCategories(long categoryId) {
-        return categoryRepository.findByParentCategory_Id(categoryId).stream().map(categoryMapper::toCategoryResponse).collect(Collectors.toList());
-    }
 
-    @Override
-    public PageResponse<CategoryResponse> getPagingSubCategories(long categoryId, int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sortBy));
-
-        Page<Category> categories = categoryRepository.findByParentCategory_Id(categoryId, pageable);
-
-        return PageResponse.<CategoryResponse>builder()
-                .currentPage(page)
-                .pageSize(size)
-                .totalPages(categories.getTotalPages())
-                .totalElements(categories.getTotalElements())
-                .content(categories.getContent().stream().map(categoryMapper::toCategoryResponse).toList())
-                .build();
-    }
 }

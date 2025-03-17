@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Builder
@@ -18,19 +19,14 @@ public class AccountResponse {
 
     private String username;
 
-    private String password;
-
     private String email;
 
     private Boolean isActive;
 
-    private String verificationCode;
-
-    private LocalDateTime verificationCodeExpiry;
-
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt;    
 
     private LocalDateTime updatedAt;
 
     private List<String> role = new ArrayList<>();
+
 }

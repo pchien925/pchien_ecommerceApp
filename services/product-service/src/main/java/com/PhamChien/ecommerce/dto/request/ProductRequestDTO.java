@@ -20,6 +20,7 @@ public class ProductRequestDTO {
 
     private String color;
 
+    private long quantity;
 
     private int sold;
 
@@ -27,9 +28,6 @@ public class ProductRequestDTO {
     private String thumbnailUrl;
 
     private List<Long> mediaIds;
-
-
-    private boolean isActive = false;
 
 
     private Long parentProductId;

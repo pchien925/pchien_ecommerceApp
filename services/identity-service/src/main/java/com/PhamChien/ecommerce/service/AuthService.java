@@ -5,11 +5,12 @@ import com.PhamChien.ecommerce.dto.response.AccountResponse;
 import com.PhamChien.ecommerce.dto.response.IntrospectResponse;
 import com.PhamChien.ecommerce.dto.response.TokenResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
 public interface AuthService {
-    TokenResponse authenticate(LoginRequest request);
+    TokenResponse authenticate(LoginRequest request, HttpServletResponse response);
 
     AccountResponse getAccount();
 
@@ -23,7 +24,7 @@ public interface AuthService {
 
     TokenResponse refresh(HttpServletRequest request);
 
-    String logout(String request);
+    String logout(HttpServletResponse response);
 
     String forgotPassword(String email);
 
@@ -34,4 +35,10 @@ public interface AuthService {
     String assignRole(AssignRoleRequest request);
 
     String revokeRole(AssignRoleRequest request);
+
+    IntrospectResponse introspectToken(HttpServletRequest request);
+
+    AccountResponse findById(String accountId);
+
+    String deleteAccount(String accountId);
 }

@@ -7,9 +7,9 @@ import java.time.LocalDate;
 
 @Getter
 public class UserUpdateRequest {
-    private String firstname;
+    private String fullName;
 
-    private String lastname;
+    private String avatarUrl;
 
     private Gender gender;
 

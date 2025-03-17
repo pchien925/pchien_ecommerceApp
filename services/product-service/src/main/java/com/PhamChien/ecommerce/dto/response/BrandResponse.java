@@ -11,5 +11,6 @@ public class BrandResponse {
     private int id;
     private String name;
     private String description;
+    private String thumbnailUrl;
     private String slug;
 }

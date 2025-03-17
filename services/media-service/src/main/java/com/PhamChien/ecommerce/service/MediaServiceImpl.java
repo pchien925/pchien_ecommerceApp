@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -70,6 +71,22 @@ public class MediaServiceImpl implements MediaService {
         if(this.remove(media.getMediaKey()))
             mediaRepository.delete(media);
         return "Deleted";
+    }
+
+    @Override
+    public MediaResponse upload(MultipartFile multipartFile) {
+        try {
+            Map<?, ?> result = cloudinary.uploader().upload(multipartFile.getBytes(), ObjectUtils.emptyMap());
+            Media media = Media.builder()
+                    .url(result.get("url").toString())
+                    .mediaKey(result.get("public_id").toString())
+                    .type(result.get("resource_type").toString())
+                    .build();
+            return mediaMapper.toMediaResponse(mediaRepository.save(media));
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override

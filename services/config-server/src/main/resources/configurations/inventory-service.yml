@@ -13,6 +13,6 @@ spring:
 openapi:
   service:
     api-docs: inventory-service
-    server: http://localhost:8085
+    server: http://localhost:8087
     title: Inventory service
     version: 1.0.0

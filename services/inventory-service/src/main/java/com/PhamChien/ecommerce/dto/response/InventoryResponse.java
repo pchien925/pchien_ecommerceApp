@@ -7,6 +7,7 @@ import lombok.*;
 @Builder
 public class InventoryResponse {
     private Long id;
-    private String productId;
-    private Long quantity;
+    private Long productId;
+    private Long availableQuantity;
+    private Long reservedQuantity;
 }

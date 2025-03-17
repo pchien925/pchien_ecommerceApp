@@ -78,9 +78,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isWhiteListURL(String url) {
-        List<String> permitUrls = new LinkedList<>();
-        permitUrls.add("/auth/login");
-        permitUrls.add("/refresh-token");
+        List<String> permitUrls = List.of(PUBLIC_ENDPOINTS);
 
         return permitUrls.contains(url);
     }

@@ -8,5 +8,4 @@ public class CategoryRequestDTO {
 
     private String thumbnailUrl;
 
-    private long parentCategoryId;
 }

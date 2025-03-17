@@ -1,5 +1,6 @@
 package com.PhamChien.ecommerce.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,5 +35,6 @@ public class Profile extends AbstractEntity<Long>{
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 }

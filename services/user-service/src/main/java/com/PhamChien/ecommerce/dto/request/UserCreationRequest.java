@@ -6,9 +6,10 @@ import java.time.LocalDate;
 
 @Getter
 public class UserCreationRequest {
-    private String firstname;
 
-    private String lastname;
+    private String fullName;
+
+    private String   avatarUrl;
 
     private Gender gender;
 

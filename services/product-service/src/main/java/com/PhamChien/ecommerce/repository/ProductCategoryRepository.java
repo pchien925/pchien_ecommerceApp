@@ -19,8 +19,6 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
 
     List<ProductCategory> findByProduct(Product product);
 
-    List<ProductCategory> findByCategory_Id(Long id);
-
     void deleteByProductIn(Collection<Product> products);
 
     void deleteByCategoryIn(Collection<Category> categories);

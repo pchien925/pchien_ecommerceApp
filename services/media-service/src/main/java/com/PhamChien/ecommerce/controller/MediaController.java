@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,7 +24,15 @@ public class MediaController {
     ApiResponse<MediaResponse> save(@ModelAttribute @Valid MediaRequestDTO requestDTO){
         return ApiResponse.<MediaResponse>builder()
                 .status(HttpStatus.CREATED.value())
-                .data(mediaService.saveMedia(requestDTO))
+                .data(mediaService.saveMedia(requestDTO))   
+                .build();
+    }
+
+    @PostMapping("/upload")
+    ApiResponse<MediaResponse> upload(@RequestParam("file") MultipartFile multipartFile){
+        return ApiResponse.<MediaResponse>builder()
+                .status(HttpStatus.CREATED.value())
+                .data(mediaService.upload(multipartFile))
                 .build();
     }
 

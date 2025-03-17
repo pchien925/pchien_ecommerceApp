@@ -26,6 +26,7 @@ public class KafkaProducer {
     @Value("${spring.kafka.topic.forgotPassword}")
     private String forgotPassword;
 
+
     @Bean
     public ProducerFactory<String, String> producerFactory() {
         log.debug("Creating producer factory");

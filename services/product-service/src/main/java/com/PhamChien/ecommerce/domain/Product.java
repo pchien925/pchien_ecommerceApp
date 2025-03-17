@@ -17,6 +17,8 @@ import java.util.Set;
 public class Product extends AbstractEntity<Long>{
     private String name;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String slug;
@@ -32,9 +34,6 @@ public class Product extends AbstractEntity<Long>{
 
     private Integer sold;
 
-    @Column(name = "is_active")
-    @Builder.Default
-    private boolean isActive = false;
 
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;

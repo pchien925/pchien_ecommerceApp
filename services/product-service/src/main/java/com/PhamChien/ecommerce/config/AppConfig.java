@@ -30,7 +30,7 @@ public class AppConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         log.info("------ security filter chain -----");
-        http.cors(Customizer.withDefaults())
+        http
         .authorizeHttpRequests(requests -> {
             requests
                     .requestMatchers(WHITE_LIST).permitAll()

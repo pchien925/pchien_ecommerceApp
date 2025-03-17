@@ -78,4 +78,22 @@ public class MailServiceImpl implements MailService {
             throw e;
         }
     }
+
+    @KafkaListener(topics = "order-mail-topic", groupId = "order-mail-group")
+    public void sendOrderMail(String message){
+        SimpleMailMessage mail = new SimpleMailMessage();
+        //thêm logic lấy thông tin từ message
+        try {
+            mail.setTo("pcchien250904@gmail.com");
+            mail.setSubject("Order");
+            mail.setText("Bạn đã tạo đơn hàng thành công.");
+            mail.setFrom(fromEmail);
+
+            mailSender.send(mail);
+        }
+        catch (Exception e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
 }

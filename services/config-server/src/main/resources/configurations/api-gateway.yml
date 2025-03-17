@@ -56,6 +56,30 @@ spring:
             - Path=/api/v1/inventory/**, /v3/api-docs/inventory-service
           filters:
             - RewritePath=/(?<segment>.*), /$\{segment}
+
+        #CART-SERVICE
+        - id: cart-service
+          uri: lb://CART-SERVICE
+          predicates:
+            - Path=/api/v1/carts/**, /v3/api-docs/cart-service
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
+
+        #ORDER-SERVICE
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/v1/orders/**, /v3/api-docs/order-service
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
+
+        #PAYMENT-SERVICE
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/api/v1/payment/**, /v3/api-docs/payment-service
+          filters:
+            - RewritePath=/(?<segment>.*), /$\{segment}
 springdoc:
   api-docs:
     enabled: true
@@ -78,3 +102,9 @@ springdoc:
         name: Mail Service
       - url: /v3/api-docs/inventory-service
         name: Inventory Service
+      - url: /v3/api-docs/cart-service
+        name: Cart Service
+      - url: /v3/api-docs/order-service
+        name: Order Service
+      - url: /v3/api-docs/payment-service
+        name: Payment Service

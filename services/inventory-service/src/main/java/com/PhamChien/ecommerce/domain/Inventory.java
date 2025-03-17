@@ -19,13 +19,16 @@ public class Inventory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    Long id;
+    private Long id;
 
     @Column(name = "product_id")
-    private String productId;
+    private Long productId;
 
-    @Column(name = "quantity")
-    private Long quantity;
+    @Column(name = "available_quantity")
+    private Long availableQuantity;
+
+    @Column(name = "reserved_quantity")
+    private Long reservedQuantity;
 
     @Column(name = "created_at")
     @CreationTimestamp

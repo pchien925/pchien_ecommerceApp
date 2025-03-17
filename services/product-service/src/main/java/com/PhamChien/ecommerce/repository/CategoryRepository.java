@@ -12,13 +12,5 @@ import java.util.List;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long>{
 
-    List<Category> findByParentCategoryIsNull();
-
-    Page<Category> findByParentCategoryIsNull(Pageable pageable);
-
-    List<Category> findByParentCategory_Id(Long categoryId);
-
-    Page<Category> findByParentCategory_Id(Long categoryId, Pageable pageable);
-
     boolean existsByName(String name);
 }

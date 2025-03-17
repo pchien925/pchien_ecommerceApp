@@ -21,10 +21,6 @@ public class Category extends AbstractEntity<Long>{
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "parent_category_id")
-    private Category parentCategory;
-
     @OneToMany(mappedBy = "category")
     @JsonIgnore
     @Builder.Default

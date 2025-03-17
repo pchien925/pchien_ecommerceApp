@@ -4,6 +4,7 @@ import com.PhamChien.ecommerce.dto.request.*;
 import com.PhamChien.ecommerce.dto.response.*;
 import com.PhamChien.ecommerce.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ import java.util.List;
 public class AuthController {
     private final AuthService authService;
 
-    @GetMapping("/myInfo")
+    @GetMapping("/account")
     public ApiResponse<AccountResponse> getUserCredential(){
         return ApiResponse.<AccountResponse>builder()
                 .status(HttpStatus.OK.value())
@@ -34,10 +35,19 @@ public class AuthController {
                 .build();
     }
 
+    @GetMapping("/{accountId}")
+    public ApiResponse<AccountResponse> findById(@PathVariable("accountId") String accountId){
+        return ApiResponse.<AccountResponse>builder()
+                .status(HttpStatus.OK.value())
+                .data(authService.findById(accountId))
+                .build();
+    }
+
 
     @GetMapping("/activate-account")
     public ApiResponse<AccountResponse> verifyUser(@RequestParam("code") String verificationCode){
         return ApiResponse.<AccountResponse>builder()
+                .status(HttpStatus.OK.value())
                 .data(authService.activateAccount(verificationCode))
                 .build();
     }
@@ -46,6 +56,7 @@ public class AuthController {
     @PostMapping("/verifyToken")
     public ApiResponse<IntrospectResponse> verifyToken(@RequestBody IntrospectRequest request){
         return ApiResponse.<IntrospectResponse>builder()
+                .status(HttpStatus.OK.value())
                 .data(authService.introspect(request))
                 .build();
     }
@@ -54,19 +65,20 @@ public class AuthController {
     public ApiResponse<AccountResponse> registerUser(@RequestBody RegisterRequest registerRequest) {
         AccountResponse accountResponse = authService.registerUser(registerRequest);
         return ApiResponse.<AccountResponse>builder()
+                .status(HttpStatus.OK.value())
                 .data(accountResponse)
                 .build();
     }
 
     @PostMapping("/login")
-    public ApiResponse<TokenResponse> loginUser(@RequestBody LoginRequest loginRequest) {
+    public ApiResponse<TokenResponse> loginUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response){
         return ApiResponse.<TokenResponse>builder()
                 .status(HttpStatus.OK.value())
-                .data(authService.authenticate(loginRequest))
+                .data(authService.authenticate(loginRequest, response))
                 .build();
     }
 
-    @PostMapping("/refresh")
+    @GetMapping("/refresh")
     public ApiResponse<TokenResponse> refresh(HttpServletRequest request){
         return ApiResponse.<TokenResponse>builder()
                 .status(HttpStatus.OK.value())
@@ -75,10 +87,10 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ApiResponse<String> logout(@RequestHeader("Authorization") String authorizationHeader){
+    public ApiResponse<String> logout(HttpServletResponse response){
      return ApiResponse.<String>builder()
              .status(HttpStatus.OK.value())
-             .data(authService.logout(authorizationHeader))
+             .data(authService.logout(response))
              .build();
     }
 
@@ -122,4 +134,19 @@ public class AuthController {
                 .build();
     }
 
+    @GetMapping("/introspect")
+    public ApiResponse<IntrospectResponse> introspect(HttpServletRequest request){
+        return ApiResponse.<IntrospectResponse>builder()
+                .status(HttpStatus.OK.value())
+                .data(authService.introspectToken(request))
+                .build();
+    }
+
+    @DeleteMapping("/{accountId}")
+    public ApiResponse<String> deleteAccount(@PathVariable("accountId") String accountId){
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .data(authService.deleteAccount(accountId))
+                .build();
+    }
 }

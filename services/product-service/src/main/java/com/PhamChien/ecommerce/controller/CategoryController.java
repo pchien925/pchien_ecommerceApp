@@ -55,13 +55,7 @@ public class CategoryController {
                 .build();
     }
 
-    @GetMapping
-    public ApiResponse<List<CategoryResponse>> getParentCategories(){
-        return ApiResponse.<List<CategoryResponse>>builder()
-                .status(HttpStatus.OK.value())
-                .data(categoryService.getParentCategories())
-                .build();
-    }
+
 
     @GetMapping("/all")
     public ApiResponse<List<CategoryResponse>> getAllCategories(){
@@ -71,17 +65,6 @@ public class CategoryController {
                 .build();
     }
 
-    @GetMapping("/paging")
-    public ApiResponse<PageResponse<CategoryResponse>> getPagingCategories(
-            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
-            @RequestParam(value = "size", required = false, defaultValue = "5") int size,
-            @RequestParam(value = "sortBy", required = false, defaultValue = "createdAt") String sortBy
-    ){
-        return ApiResponse.<PageResponse<CategoryResponse>>builder()
-                .status(HttpStatus.OK.value())
-                .data(categoryService.getPagingCategories(page, size, sortBy))
-                .build();
-    }
 
     @GetMapping("/paging/all")
     public ApiResponse<PageResponse<CategoryResponse>> getPagingAllCategories(
@@ -95,24 +78,4 @@ public class CategoryController {
                 .build();
     }
 
-    @GetMapping("/{categoryId}/all")
-    public ApiResponse<List<CategoryResponse>> getSubCategories(@PathVariable long categoryId){
-        return ApiResponse.<List<CategoryResponse>>builder()
-                .status(HttpStatus.OK.value())
-                .data(categoryService.getSubCategories(categoryId))
-                .build();
-    }
-
-    @GetMapping("/{categoryId}/paging")
-    public ApiResponse<PageResponse<CategoryResponse>> getPagingSubCategories(
-            @PathVariable long categoryId,
-            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
-            @RequestParam(value = "size", required = false, defaultValue = "5") int size,
-            @RequestParam(value = "sortBy", required = false, defaultValue = "createdAt") String sortBy
-    ){
-        return ApiResponse.<PageResponse<CategoryResponse>>builder()
-                .status(HttpStatus.OK.value())
-                .data(categoryService.getPagingSubCategories(categoryId, page, size, sortBy))
-                .build();
-    }
 }

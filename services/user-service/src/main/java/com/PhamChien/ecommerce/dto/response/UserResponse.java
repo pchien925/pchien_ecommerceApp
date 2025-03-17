@@ -20,9 +20,9 @@ import java.util.Set;
 public class UserResponse {
     private Long id;
 
-    private String firstname;
+    private String fullName;
 
-    private String lastname;
+    private String avatarUrl;
 
     private Gender gender;
 

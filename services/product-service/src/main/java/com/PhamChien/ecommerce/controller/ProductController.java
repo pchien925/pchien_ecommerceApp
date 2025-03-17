@@ -2,13 +2,11 @@ package com.PhamChien.ecommerce.controller;
 
 import com.PhamChien.ecommerce.dto.request.PriceUpdateRequest;
 import com.PhamChien.ecommerce.dto.request.ProductRequestDTO;
-import com.PhamChien.ecommerce.dto.response.ApiResponse;
-import com.PhamChien.ecommerce.dto.response.MediaResponse;
-import com.PhamChien.ecommerce.dto.response.PageResponse;
-import com.PhamChien.ecommerce.dto.response.ProductResponse;
+import com.PhamChien.ecommerce.dto.response.*;
 import com.PhamChien.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -60,9 +58,17 @@ public class ProductController {
                 .build();
     }
 
-    @DeleteMapping("/{productId}")
-    public ApiResponse<String> deleteProduct(@PathVariable("productId") long productId){
+    @PatchMapping("/{productId}/sold")
+    public ApiResponse<String> updateSoldQuantity(@PathVariable("productId") long productId, @RequestParam int quantity){
         return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .data(productService.updateSoldQuantity(productId, quantity))
+                .build();
+    }
+
+    @DeleteMapping("/{productId}")
+    public ApiResponse<List<Long>> deleteProduct(@PathVariable("productId") long productId){
+        return ApiResponse.<List<Long>>builder()
                 .status(HttpStatus.OK.value())
                 .data(productService.deleteProduct(productId))
                 .build();
@@ -108,11 +114,14 @@ public class ProductController {
     public ApiResponse<PageResponse<ProductResponse>> getPagingProducts(
             @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             @RequestParam(value = "size", required = false, defaultValue = "5") int size,
-            @RequestParam(value = "sortBy", required = false, defaultValue = "createdAt") String sortBy
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "brandName", required = false) String brandName,
+            @RequestParam(value = "field", required = false, defaultValue = "id") String sortField,
+            @RequestParam(value = "order", defaultValue = "ASC") String sortOrder
     ){
         return ApiResponse.<PageResponse<ProductResponse>>builder()
                 .status(HttpStatus.OK.value())
-                .data(productService.getPagingProducts(page, size, sortBy))
+                .data(productService.getPagingProducts(page, size, name, brandName, sortField, sortOrder))
                 .build();
     }
 
@@ -155,6 +164,19 @@ public class ProductController {
         return ApiResponse.<List<MediaResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .data(productService.getMediasByProduct(productId))
+                .build();
+    }
+
+    @PostMapping("/categories")
+    public ApiResponse<PageResponse<ProductResponse>> getProductsByCategoryIds(
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "5") int size,
+            @RequestParam(value = "field", required = false, defaultValue = "id") String sortField,
+            @RequestParam(value = "order", defaultValue = "ASC") String sortOrder,
+            @RequestBody List<Long> categoryIds) {
+        return ApiResponse.<PageResponse<ProductResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .data(productService.getProductsByCategoryIds(page, size,sortField,sortOrder,  categoryIds))
                 .build();
     }
 }

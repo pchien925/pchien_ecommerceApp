@@ -11,10 +11,13 @@ import com.PhamChien.ecommerce.exception.ResourceNotFoundException;
 import com.PhamChien.ecommerce.exception.UnauthenticatedException;
 import com.PhamChien.ecommerce.mapper.AccountMapper;
 import com.PhamChien.ecommerce.repository.AccountRepository;
+import com.PhamChien.ecommerce.repository.RoleRepository;
 import com.PhamChien.ecommerce.service.*;
 import com.PhamChien.ecommerce.util.RoleName;
 import com.PhamChien.ecommerce.util.TokenType;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +26,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -49,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
     private String forgotPassword;
 
     @Override
-    public TokenResponse authenticate(LoginRequest request){
+    public TokenResponse authenticate(LoginRequest request, HttpServletResponse response){
         var account = accountRepository
                 .findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Username not correct"));
@@ -67,9 +71,16 @@ public class AuthServiceImpl implements AuthService {
                         .username(account.getUsername())
                 .build());
 
+        // Add refresh token to cookie
+        Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7); // 7 days
+
+        response.addCookie(refreshTokenCookie);
         return TokenResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .accountId(account.getId())
                 .build();
     }
@@ -77,15 +88,15 @@ public class AuthServiceImpl implements AuthService {
     public AccountResponse getAccount(){
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Jwt object =(Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Optional<Account> account = accountRepository.findByUsername(username);
         if (account.isEmpty()) {
             throw new ResourceNotFoundException("Account not found with username: " + username);
         }
-        List<String> roleNameList = roleService.getRoleNameList(account.get().getId()).stream().map(RoleName::name).collect(Collectors.toList());
         AccountResponse response = accountMapper.toAccountResponse(account.get());
 
-        response.setRole(roleNameList);
+        response.setRole(List.of(object.getClaimAsString("roles")));
 
         return response;
     }
@@ -117,8 +128,12 @@ public class AuthServiceImpl implements AuthService {
                 .verificationCodeExpiry(LocalDateTime.now().plusMinutes(30))
                 .build();
         kafkaTemplate.send(mailRegister, String.format("email=%s,username=%s,code=%s", account.getEmail(), account.getUsername(), account.getVerificationCode()));
-
-        return accountMapper.toAccountResponse(accountRepository.save(account));
+        AccountResponse response = accountMapper.toAccountResponse(accountRepository.save(account));
+        roleService.assignRole(AssignRoleRequest.builder()
+                .accountId(response.getId())
+                .roleId(roleService.getRoleByRoleName(RoleName.ROLE_USER).getId())
+                .build());
+        return response;
     }
 
     @Override
@@ -164,12 +179,22 @@ public class AuthServiceImpl implements AuthService {
                     .isValid(true)
                     .build();
         }
-        throw new ResourceNotFoundException("Invalid token");
+        throw new UnauthenticatedException("Invalid token");
     }
 
     @Override
     public TokenResponse refresh(HttpServletRequest request){
-        String token = request.getHeader("refresh-token");
+        Cookie[] cookies = request.getCookies();
+        String token = "";
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                // Tìm cookie với tên là "refresh_token"
+                if ("refresh_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                }
+            }
+        }
+        log.info("Token: " + token);
 
         if(StringUtils.isBlank(token))
             throw new InvalidDataException("token must be not blank");
@@ -186,23 +211,21 @@ public class AuthServiceImpl implements AuthService {
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(token)
                 .accountId(account.getId())
                 .build();
     }
 
     @Override
-    public String logout(String request){
-        String token = request.replace("Bearer ", "");
+    public String logout(HttpServletResponse response){
+        Cookie refreshTokenCookie = new Cookie("refresh_token", null);
+        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
 
-        if(StringUtils.isBlank(token))
-            throw new InvalidDataException("token must be not blank");
+        response.addCookie(refreshTokenCookie);
 
-        final String username = jwtService.extractUsername(token, TokenType.REFRESH_TOKEN);
-
-        Token curToken = tokenService.getByUsername(username);
-
-        return tokenService.delete(curToken);
+        return "Logout";
     }
 
     @Override
@@ -283,4 +306,48 @@ public class AuthServiceImpl implements AuthService {
         return roleService.revokeRole(request);
     }
 
+    @Override
+    public IntrospectResponse introspectToken(HttpServletRequest request) {
+
+        String token = request.getHeader("Authorization").replace("Bearer ", "");
+        if(StringUtils.isBlank(token))
+            throw new UnauthenticatedException("token must be not blank");
+
+        final String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
+        Optional<Account> account = accountRepository.findByUsername(username);
+        if (account.isEmpty())
+            return IntrospectResponse.builder()
+                    .isValid(false)
+                    .build();
+        List<String> roleNameList = roleService.getRoleNameList(account.get().getId()).stream().map(RoleName::name).collect(Collectors.toList());
+
+        if(jwtService.isValidToken(token, TokenType.ACCESS_TOKEN, account.get())) {
+            return IntrospectResponse.builder()
+                    .accountId(account.get().getId())
+                    .username(account.get().getUsername())
+                    .roleName(roleNameList)
+                    .expiresAt(jwtService.extractExpiresAt(token, TokenType.ACCESS_TOKEN))
+                    .isValid(true)
+                    .build();
+        }
+        throw new UnauthenticatedException("Invalid token");
+    }
+
+    @Override
+    public AccountResponse findById(String accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        List<RoleName> roleNameList = roleService.getRoleNameList(accountId);
+        AccountResponse response = accountMapper.toAccountResponse(account);
+
+        response.setRole(roleNameList.stream().map(RoleName::name).toList());
+
+        return response;
+    }
+
+    @Override
+    public String deleteAccount(String accountId) {
+        accountRepository.deleteById(accountId);
+        return "deleted";
+    }
 }

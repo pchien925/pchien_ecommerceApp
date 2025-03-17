@@ -4,6 +4,7 @@ import com.PhamChien.ecommerce.dto.request.PriceUpdateRequest;
 import com.PhamChien.ecommerce.dto.request.ProductRequestDTO;
 import com.PhamChien.ecommerce.dto.response.MediaResponse;
 import com.PhamChien.ecommerce.dto.response.PageResponse;
+import com.PhamChien.ecommerce.dto.response.ProductDetailResponse;
 import com.PhamChien.ecommerce.dto.response.ProductResponse;
 
 import java.util.List;
@@ -17,13 +18,13 @@ public interface ProductService {
 
     ProductResponse getProduct(long productId);
 
-    String deleteProduct(long productId);
+    public List<Long> deleteProduct(long productId);
 
     List<ProductResponse> findAllParentProduct();
 
     PageResponse<ProductResponse> getPagingAllProducts(int page, int size, String sortBy);
 
-    PageResponse<ProductResponse> getPagingProducts(int page, int size, String sortBy);
+    PageResponse<ProductResponse> getPagingProducts(int page, int size, String name, String brandName, String sortField, String sortOrder);
 
     List<ProductResponse> getSubProducts(long productId);
 
@@ -39,4 +40,8 @@ public interface ProductService {
 
 
     String updateThumbnailUrl(long productId, long mediaId);
+
+    PageResponse<ProductResponse> getProductsByCategoryIds(int page, int size, String sortField, String sortOrder, List<Long> categoryIds);
+
+    String updateSoldQuantity(long productId, int quantity);
 }

@@ -21,5 +21,4 @@ public class CategoryResponse {
 
     private String thumbnailUrl;
 
-    private Category parentCategory;
 }

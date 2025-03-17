@@ -1,0 +1,16 @@
+server:
+  port: 8089
+spring:
+  data:
+    mongodb:
+        host: localhost
+        port: 27017
+        database: product_db
+  kafka:
+    bootstrap-servers: localhost:29092
+openapi:
+  service:
+    api-docs: cart-service
+    server: http://localhost:8089
+    title: Cart service
+    version: 1.0.0

@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
     List<Profile> findAllByUser(User user);
+
+    List<Profile> findByPhoneContains(String phone);
 }

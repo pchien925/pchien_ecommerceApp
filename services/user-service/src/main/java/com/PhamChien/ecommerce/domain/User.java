@@ -14,16 +14,16 @@
     @NoArgsConstructor
     @AllArgsConstructor
     @Table(name = "user")
-    public class User extends AbstractEntity<Long>{
-        @Column(name = "firstname")
-        private String firstname;
-
-        @Column(name = "lastname")
-        private String lastname;
+    public class    User extends AbstractEntity<Long>{
+        @Column(name = "full_name")
+        private String fullName;
 
         @Column(name = "gender")
         @Enumerated(EnumType.STRING)
         private Gender gender;
+
+        @Column(name = "avatar_url")
+        private String avatarUrl;
 
         @Column(name = "phone")
         private String phone;

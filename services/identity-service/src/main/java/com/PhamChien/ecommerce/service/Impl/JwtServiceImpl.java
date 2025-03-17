@@ -83,7 +83,7 @@ public class JwtServiceImpl implements JwtService {
                 .subject(account.getUsername())
                 .issuer("PhamChien")
                 .issueTime(new Date())
-                .expirationTime(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * expiryDay)))
+                .expirationTime(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * 7 * expiryDay)))
                 .claim("userID", account.getId())
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());

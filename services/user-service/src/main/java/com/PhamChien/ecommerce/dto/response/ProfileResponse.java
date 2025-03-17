@@ -25,5 +25,4 @@ public class ProfileResponse {
 
     private String fullAddress;
 
-    private User user;
 }

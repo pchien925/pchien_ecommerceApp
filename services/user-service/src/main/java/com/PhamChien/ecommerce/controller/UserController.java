@@ -3,10 +3,12 @@ package com.PhamChien.ecommerce.controller;
 import com.PhamChien.ecommerce.dto.request.UserCreationRequest;
 import com.PhamChien.ecommerce.dto.request.UserUpdateRequest;
 import com.PhamChien.ecommerce.dto.response.ApiResponse;
+import com.PhamChien.ecommerce.dto.response.PageResponse;
 import com.PhamChien.ecommerce.dto.response.UserResponse;
 import com.PhamChien.ecommerce.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -65,6 +67,21 @@ public class UserController {
         return ApiResponse.<List<UserResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .data(userService.getAllUser())
+                .build();
+    }
+
+    @GetMapping("/paging")
+    ApiResponse<PageResponse<UserResponse>> getAll(@RequestParam(value = "page", required = false, defaultValue = "1") int page,
+                                                   @RequestParam(value = "size", required = false, defaultValue = "5") int size,
+                                                   @RequestParam(value = "phone", required = false) String phone,
+                                                   @RequestParam(value = "fullName", required = false) String fullName,
+                                                   @RequestParam(value = "credentialId", required = false) String credentialId,
+                                                   @RequestParam(value = "field", required = false, defaultValue = "id") String sortField,
+                                                   @RequestParam(value = "order", defaultValue = "ASC") String sortOrder
+             ){
+        return ApiResponse.<PageResponse<UserResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .data(userService.getAll(fullName, phone, credentialId, page, size, sortField, sortOrder))
                 .build();
     }
 }

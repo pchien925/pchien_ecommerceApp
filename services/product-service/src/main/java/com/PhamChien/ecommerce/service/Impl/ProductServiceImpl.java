@@ -2,6 +2,7 @@ package com.PhamChien.ecommerce.service.Impl;
 
 import com.PhamChien.ecommerce.client.MediaClient;
 import com.PhamChien.ecommerce.domain.*;
+import com.PhamChien.ecommerce.dto.request.InventoryRequestDTO;
 import com.PhamChien.ecommerce.dto.request.PriceUpdateRequest;
 import com.PhamChien.ecommerce.dto.request.ProductRequestDTO;
 import com.PhamChien.ecommerce.dto.response.MediaResponse;
@@ -105,7 +106,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public String deleteProduct(long productId) {
+    public List<Long> deleteProduct(long productId) {
         Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not existed"));
 
         List<Product> products = new ArrayList<>();
@@ -113,8 +114,10 @@ public class ProductServiceImpl implements ProductService {
         if (product.getParentProduct() == null) {
             products.addAll(productRepository.findByParentProduct(product));
         }
+
+
         deleteProducts(products);
-        return "Product deleted";
+        return products.stream().map(Product::getId).toList();
     }
 
     @Override
@@ -147,10 +150,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public PageResponse<ProductResponse> getPagingProducts(int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sortBy));
+    public PageResponse<ProductResponse> getPagingProducts(int page, int size, String name, String brandName, String sortField, String sortOrder) {
+        Sort.Direction direction = Sort.Direction.fromString(sortOrder);
+        Sort sort = Sort.by(direction, sortField);
 
-        Page<Product> products = productRepository.findByParentProductIsNull(pageable);
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        Page<Product> products = productRepository.searchParentProductsByNameAndBrand(name, brandName, pageable);
         return PageResponse.<ProductResponse>builder()
                 .currentPage(page)
                 .pageSize(size)
@@ -201,7 +207,6 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public String updateIsActive(long productId, boolean isActive) {
         Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not existed"));
-        product.setActive(isActive);
         productRepository.save(product);
         return "Product'activation updated";
     }
@@ -223,6 +228,30 @@ public class ProductServiceImpl implements ProductService {
         product.setThumbnailUrl(mediaClient.getMedia(mediaId).getData().getUrl());
         productRepository.save(product);
         return "Product thumbnail updated with url: " + product.getThumbnailUrl();
+    }
+
+    @Override
+    public PageResponse<ProductResponse>getProductsByCategoryIds(int page, int size, String sortField, String sortOrder, List<Long> categoryIds) {
+        Sort.Direction direction = Sort.Direction.fromString(sortOrder);
+        Sort sort = Sort.by(direction, sortField);
+
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Page<Product> products = productRepository.findProductsByCategoryIds(categoryIds, pageable);
+        return PageResponse.<ProductResponse>builder()
+                .currentPage(1)
+                .pageSize(5)
+                .totalPages(products.getTotalPages())
+                .totalElements(products.getTotalElements())
+                .content(products.getContent().stream().map(productMapper::toProductResponse).toList())
+                .build();
+    }
+
+    @Override
+    public String updateSoldQuantity(long productId, int quantity) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not existed"));
+        product.setSold(product.getSold() + quantity);
+        productRepository.save(product);
+        return "Product sold quantity updated";
     }
 
     private List<Long> getMediaIdsByProduct(long productId) {

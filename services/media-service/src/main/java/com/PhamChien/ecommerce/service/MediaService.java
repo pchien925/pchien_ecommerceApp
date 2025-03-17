@@ -3,6 +3,7 @@ package com.PhamChien.ecommerce.service;
 import com.PhamChien.ecommerce.dto.request.MediaRequestDTO;
 import com.PhamChien.ecommerce.dto.response.MediaResponse;
 import com.PhamChien.ecommerce.dto.response.PageResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,4 +19,6 @@ public interface MediaService {
     String delete(Long mediaId);
 
     List<MediaResponse> getAll(List<Long> mediaIds);
+
+    MediaResponse upload(MultipartFile multipartFile);
 }

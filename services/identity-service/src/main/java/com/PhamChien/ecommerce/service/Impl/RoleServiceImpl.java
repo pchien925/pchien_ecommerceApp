@@ -25,11 +25,11 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public String assignRole(AssignRoleRequest request) {
-        if(accountHasRoleRepository.existsByRole_IdAndAccount_Id(request.getRoleId(), request.getAccountID())){
+        if(accountHasRoleRepository.existsByRole_IdAndAccount_Id(request.getRoleId(), request.getAccountId())){
             return "user had this role";
         }
         AccountHasRole user = new AccountHasRole();
-        user.setAccount(accountRepository.findById(request.getAccountID()).orElseThrow(() -> new ResourceNotFoundException("Account Not Found")));
+        user.setAccount(accountRepository.findById(request.getAccountId()).orElseThrow(() -> new ResourceNotFoundException("Account Not Found")));
         user.setRole(roleRepository.findById(request.getRoleId()).orElseThrow(() -> new ResourceNotFoundException("role not found")));
         accountHasRoleRepository.save(user);
         return "role assigned";
@@ -38,7 +38,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public String revokeRole(AssignRoleRequest request) {
 
-        AccountHasRole user =  accountHasRoleRepository.findByRole_IdAndAccount_Id(request.getRoleId(), request.getAccountID()).orElseThrow(() -> new ResourceNotFoundException("User not had this role"));
+        AccountHasRole user =  accountHasRoleRepository.findByRole_IdAndAccount_Id(request.getRoleId(), request.getAccountId()).orElseThrow(() -> new ResourceNotFoundException("User not had this role"));
         accountHasRoleRepository.deleteById(user.getId());
         return "role revoked";
     }
@@ -47,5 +47,10 @@ public class RoleServiceImpl implements RoleService {
     public List<RoleName> getRoleNameList(String accountId){
         List<Role> roleList = roleRepository.findAllByAccountId(accountId);
         return roleList.stream().map(Role::getName).collect(Collectors.toList());
+    }
+
+    @Override
+    public Role getRoleByRoleName(RoleName roleName) {
+        return roleRepository.findByName(roleName);
     }
 }

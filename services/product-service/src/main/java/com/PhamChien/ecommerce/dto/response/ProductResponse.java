@@ -4,6 +4,7 @@ import com.PhamChien.ecommerce.domain.Brand;
 import com.PhamChien.ecommerce.domain.Product;
 import com.PhamChien.ecommerce.domain.ProductMedia;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,10 +33,8 @@ public class ProductResponse {
 
     private String color;
 
-
     private Integer sold;
 
-    private boolean isActive;
 
     private String thumbnailUrl;
 

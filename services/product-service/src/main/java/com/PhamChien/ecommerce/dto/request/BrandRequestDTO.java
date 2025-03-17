@@ -6,5 +6,6 @@ import lombok.Getter;
 public class BrandRequestDTO {
     private String name;
     private String description;
+    private String thumbnailUrl;
     private String slug;
 }

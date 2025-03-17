@@ -1,0 +1,17 @@
+server:
+  port: 8093
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/rating_service
+    username: root
+    password: 25092004chien
+  jpa:
+    hibernate.ddl-auto: update
+    show-sql: true
+
+openapi:
+  service:
+    api-docs: rating-service
+    server: http://localhost:8093
+    title: Rating service
+    version: 1.0.0

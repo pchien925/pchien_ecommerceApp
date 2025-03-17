@@ -4,11 +4,18 @@ services:
     container_name: mysql-8.0.39
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 25092004chien  # Mật khẩu cho user root
+      MYSQL_ROOT_PASSWORD: 25092004chien
     ports:
-      - "3307:3306"  # Mở cổng MySQL
+      - "3307:3306"
     networks:
-      - microservices-net  # Kết nối đến network
+      - microservices-net
+  mongo:
+    image: bitnami/mongodb:8.0.3
+    container_name: mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - data:/data/db
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -33,7 +40,10 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+volumes:
+  data:
+    driver: local
 
 networks:
-  microservices-net:  # Định nghĩa mạng microservices-net
-    driver: bridge  # Sử dụng bridge network cho các service
+  microservices-net:
+    driver: bridge

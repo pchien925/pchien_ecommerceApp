@@ -15,15 +15,10 @@ public interface CategoryService {
 
     CategoryResponse getDetailCategory(long categoryId);
 
-    List<CategoryResponse> getParentCategories();
 
     List<CategoryResponse> getAllCategories();
 
-    PageResponse<CategoryResponse> getPagingCategories(int page, int size, String sortBy);
 
     PageResponse<CategoryResponse> getPagingAllCategories(int page, int size, String sortBy);
 
-    List<CategoryResponse> getSubCategories(long categoryId);
-
-    PageResponse<CategoryResponse> getPagingSubCategories(long categoryId, int page, int size, String sortBy);
 }
